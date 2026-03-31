@@ -86,12 +86,12 @@ const ProductCard = ({
         {/* Content */}
         <div className="p-5 border-t border-neutral-100">
           {/* Brand */}
-          <p className="text-[11px] font-medium text-muted uppercase tracking-[0.2em] mb-2">
+          <p className="text-[10px] sm:text-[11px] font-medium text-muted uppercase tracking-[0.2em] mb-2">
             {brand}
           </p>
 
           {/* Name */}
-          <h3 className="text-xl font-semibold text-neutral-900 line-clamp-2 tracking-tight mb-4">
+          <h3 className="text-lg sm:text-xl font-semibold text-neutral-900 line-clamp-2 tracking-tight mb-3 sm:mb-4">
             {name}
           </h3>
 
