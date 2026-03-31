@@ -90,10 +90,10 @@ const CartPage = () => {
         <p className="text-neutral-500 mb-8 text-center max-w-md">
           Looks like you haven&apos;t added anything to your bag yet.
         </p>
-        <Link
-          href="/products"
-          className="inline-flex items-center gap-2 px-8 py-4 bg-neutral-900 text-white font-bold rounded-full hover:bg-neutral-800 transition-colors"
-        >
+         <Link
+           href="/products"
+           className="inline-flex items-center gap-2 px-8 py-2.5 bg-neutral-900 text-white font-bold rounded-full hover:bg-neutral-800 hover:shadow-[var(--shadow-soft)] transition-all duration-[250ms] ease cursor-pointer"
+         >
           <ShoppingBag className="w-5 h-5" />
           Continue Shopping
         </Link>
@@ -105,38 +105,38 @@ const CartPage = () => {
     <>
       <div className="min-h-screen bg-neutral-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-10">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-neutral-900">Bag</h1>
-              <p className="text-sm text-neutral-500 mt-1">
+              <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.02em] text-neutral-900">Bag</h1>
+              <p className="text-sm text-muted mt-1">
                 {itemCount} {itemCount === 1 ? "item" : "items"}
               </p>
             </div>
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-amber-600 transition-colors"
+             className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-amber-600 transition-all duration-[250ms] ease cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               Continue Shopping
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-14">
             <div className="lg:col-span-2 space-y-0">
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className={`bg-white p-5 sm:p-6 ${index === 0 ? "rounded-t-2xl" : ""} ${index === items.length - 1 ? "rounded-b-2xl" : ""} ${index !== items.length - 1 ? "border-b border-neutral-100" : ""}`}
+                className={`bg-white p-6 sm:p-7 ${index === 0 ? "rounded-t-[20px]" : ""} ${index === items.length - 1 ? "rounded-b-[20px]" : ""} ${index !== items.length - 1 ? "border-b border-neutral-100" : ""}`}
                 >
                   <div className="flex gap-4 sm:gap-6">
                     <Link
                       href={`/product/${item.slug || item.productId}`}
-                      className="shrink-0 w-28 h-28 sm:w-36 sm:h-36 rounded-xl bg-neutral-100 overflow-hidden group"
+                       className="shrink-0 w-28 h-28 sm:w-36 sm:h-36 rounded-[20px] bg-neutral-100 overflow-hidden group"
                     >
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                         className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
                       />
                     </Link>
 
@@ -145,11 +145,11 @@ const CartPage = () => {
                         <div>
                           <Link
                             href={`/product/${item.slug || item.productId}`}
-                            className="font-bold text-neutral-900 hover:text-amber-600 transition-colors line-clamp-1"
+                             className="font-bold text-neutral-900 hover:text-amber-600 transition-all duration-[250ms] ease cursor-pointer line-clamp-1"
                           >
                             {item.name}
                           </Link>
-                          <p className="text-sm text-neutral-500 mt-0.5">{item.brand}</p>
+                          <p className="text-sm text-muted mt-0.5">{item.brand}</p>
                         </div>
                         <p className="font-bold text-neutral-900 whitespace-nowrap">
                           Rs {Number(item.price * item.quantity).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -162,10 +162,10 @@ const CartPage = () => {
                       </div>
 
                       <div className="flex items-center gap-3 mt-4">
-                        <div className="inline-flex items-center border border-neutral-200 rounded-lg overflow-hidden">
+                         <div className="inline-flex items-center border border-neutral-200 rounded-[20px] overflow-hidden">
                           <button
                             onClick={() => decrementQuantity(item.id).catch(() => {})}
-                            className="p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                             className="p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-all duration-[250ms] ease cursor-pointer"
                             aria-label="Decrease quantity"
                           >
                             {item.quantity <= 1 ? <Trash2 className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
@@ -175,7 +175,7 @@ const CartPage = () => {
                           </span>
                           <button
                             onClick={() => incrementQuantity(item.id).catch(() => {})}
-                            className="p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                             className="p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-all duration-[250ms] ease cursor-pointer"
                             aria-label="Increase quantity"
                           >
                             <Plus className="w-4 h-4" />
@@ -184,7 +184,7 @@ const CartPage = () => {
 
                         <button
                           onClick={() => removeItem(item.id).catch(() => {})}
-                          className="p-2 rounded-lg border border-neutral-200 text-neutral-400 hover:text-rose-500 hover:border-rose-200 transition-colors"
+                           className="p-2 rounded-[20px] border border-neutral-200 text-muted hover:text-rose-500 hover:border-rose-200 transition-all duration-[250ms] ease cursor-pointer"
                           aria-label="Remove from cart"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -197,12 +197,12 @@ const CartPage = () => {
             </div>
 
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl p-6 sticky top-24">
-                <h2 className="text-xl font-bold text-neutral-900 mb-6">Summary</h2>
+              <div className="bg-white rounded-[20px] p-7 sticky top-24 shadow-[var(--shadow-soft)]">
+                <h2 className="text-xl font-extrabold tracking-[-0.02em] text-neutral-900 mb-7">Summary</h2>
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-neutral-600">Bag Total</span>
+                      <span className="text-sm text-neutral-600">Bag Total</span>
                     <span className="text-sm font-medium text-neutral-900">
                       Rs {subtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </span>
@@ -227,12 +227,12 @@ const CartPage = () => {
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-neutral-50 rounded-xl">
+                  <div className="mt-6 p-5 bg-neutral-50 rounded-[20px]">
                   <div className="flex items-center gap-3 mb-3">
-                    <Tag className="w-5 h-5 text-neutral-400" />
+                       <Tag className="w-5 h-5 text-muted" />
                     <div className="text-left">
                       <p className="text-sm font-bold text-neutral-900">Have a promo code?</p>
-                      <p className="text-xs text-neutral-500">Apply now to get instant savings</p>
+                       <p className="text-xs text-muted">Apply now to get instant savings</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -241,14 +241,14 @@ const CartPage = () => {
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                       placeholder={couponCode ? `Applied: ${couponCode}` : "Enter coupon code"}
-                      className="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm"
+                       className="flex-1 rounded-[20px] border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/60 focus:ring-offset-2"
                       disabled={Boolean(couponCode)}
                     />
                     {!couponCode ? (
                       <button
                         onClick={handleApplyCoupon}
                         disabled={couponLoading || !couponInput.trim()}
-                        className="px-3 py-2 rounded-lg bg-neutral-900 text-white text-sm font-semibold disabled:opacity-50"
+                         className="px-6 py-2.5 rounded-[20px] bg-neutral-900 text-white text-sm font-semibold disabled:opacity-50 hover:bg-neutral-800 hover:shadow-[var(--shadow-soft)] transition-all duration-[250ms] ease cursor-pointer"
                       >
                         Apply
                       </button>
@@ -256,7 +256,7 @@ const CartPage = () => {
                       <button
                         onClick={handleRemoveCoupon}
                         disabled={couponLoading}
-                        className="px-3 py-2 rounded-lg bg-white border border-neutral-200 text-sm font-semibold"
+                         className="px-6 py-2.5 rounded-[20px] bg-white border border-neutral-200 text-sm font-semibold hover:bg-neutral-50 transition-all duration-[250ms] ease cursor-pointer"
                       >
                         Remove
                       </button>
@@ -266,16 +266,16 @@ const CartPage = () => {
 
                 <button
                   onClick={handleProceed}
-                  className="w-full mt-6 py-4 bg-neutral-900 text-white font-bold text-base rounded-full hover:bg-neutral-800 transition-colors shadow-lg hover:shadow-xl"
+                  className="w-full mt-6 py-2.5 px-6 bg-neutral-900 text-white font-bold text-base rounded-full hover:bg-neutral-800 transition-all duration-[250ms] ease cursor-pointer shadow-[var(--shadow-soft)]"
                 >
                   Proceed to Buy
                 </button>
 
                 <div className="flex items-center gap-2 mt-4 justify-center">
                   <Truck className="w-4 h-4 text-green-500" />
-                  <span className="text-xs text-neutral-500">
-                    {shipping === 0 ? "You qualify for free shipping!" : "Shipping calculated at checkout"}
-                  </span>
+                   <span className="text-xs text-muted">
+                     {shipping === 0 ? "You qualify for free shipping!" : "Shipping calculated at checkout"}
+                   </span>
                 </div>
               </div>
             </div>

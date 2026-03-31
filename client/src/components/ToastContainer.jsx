@@ -26,15 +26,15 @@ const ToastContainer = () => {
         return (
           <div
             key={toast.id}
-            className={`animate-slide-in-right rounded-xl border px-4 py-3 shadow-lg ${tone}`}
+            className={`animate-slide-in-right rounded-[20px] border px-4 py-4 shadow-[var(--shadow-lifted)] ${tone}`}
           >
             <div className="flex items-start gap-3">
               <Icon className="mt-0.5 h-5 w-5 shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold">{toast.title}</p>
-                {toast.message && <p className="text-sm opacity-90">{toast.message}</p>}
+                {toast.message && <p className="text-sm opacity-90 text-muted">{toast.message}</p>}
               </div>
-              <button onClick={() => remove(toast.id)} className="rounded p-1 hover:bg-black/10">
+              <button onClick={() => remove(toast.id)} className="rounded p-1 hover:bg-black/10 transition-all duration-[250ms] ease cursor-pointer">
                 <X className="h-4 w-4" />
               </button>
             </div>

@@ -1,10 +1,22 @@
 @import "tailwindcss";
 
 @theme {
+  /* ========================================
+     DESIGN SYSTEM - COLOR TOKENS
+     ======================================== */
+  
   /* Primary Brand Colors */
   --color-primary: #f59e0b;
   --color-primary-dark: #d97706;
   --color-primary-light: #fbbf24;
+
+  /* Color Usage Guidelines:
+     - Primary Actions (Buttons, CTAs): amber-400 (#fbbf24)
+     - Attention/Badges (Cart badge, NEW labels): yellow-400 (#facc15)
+     - Neutral Scale: Use neutral-* consistently (not gray-*)
+     - Text: neutral-900 (primary), neutral-500 (secondary)
+     - Borders: neutral-200 (default), neutral-300 (hover)
+  */
 
   /* Dark shades */
   --color-dark-900: #0a0a0a;
@@ -16,14 +28,34 @@
   /* Light shades */
   --color-light-100: #ffffff;
   --color-light-200: #fafafa;
-  --color-light-300: #f5f5f5;
-  --color-light-400: #e5e5e5;
-  --color-light-500: #d4d4d4;
+  --color-light-300: #f8f9fa;
+  --color-light-400: #e9ecef;
+  --color-light-500: #d1d5db;
+
+  /* Muted text */
+  --color-muted-text: #999999;
 
   /* Supporting colors */
   --color-green: #22c55e;
   --color-red: #ef4444;
   --color-orange: #f97316;
+
+  /* ========================================
+     DESIGN SYSTEM - BORDER RADIUS
+     ======================================== */
+  
+  /* Border Radius Tokens:
+     - sm (8px): Subtle elements, inner elements
+     - md (12px): Small components, nested items
+     - lg (20px): PRIMARY - Cards, buttons, inputs, modals (updated for modern feel)
+     - xl (24px): Large hero elements, feature cards
+     - full (9999px): Pills, badges, avatars (KEEP circular)
+  */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
 
   /* Font family */
   --font-jost: "Jost", sans-serif;

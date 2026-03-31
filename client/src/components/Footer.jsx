@@ -6,7 +6,7 @@ const FooterLink = ({ href, children }) => (
   <li>
     <Link
       href={href}
-      className="text-neutral-500 hover:text-white transition-colors duration-200 text-sm"
+      className="text-neutral-500 hover:text-white transition-all duration-[250ms] ease text-sm cursor-pointer"
     >
       {children}
     </Link>
@@ -20,7 +20,7 @@ const Footer = () => {
   return (
     <footer className="bg-neutral-950 text-white">
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-20 pb-2">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-24 pb-4">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-8">
 
           {/* Brand Column */}
@@ -29,7 +29,7 @@ const Footer = () => {
               <p className="text-2xl font-black tracking-tight">
                 SPRINT SHOES
               </p>
-              <p className="text-neutral-500 text-sm mt-2 leading-relaxed max-w-xs">
+              <p className="text-muted text-sm mt-2 leading-relaxed max-w-xs">
                 Crafted for speed. Built for style. Premium footwear for every stride.
               </p>
             </div>
@@ -41,7 +41,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-9 h-9 rounded-full border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-600 transition-all duration-200"
+                className="w-9 h-9 rounded-full border border-neutral-800 flex items-center justify-center text-muted hover:text-white hover:border-neutral-600 transition-all duration-[250ms] ease cursor-pointer"
               >
                 <Instagram className="w-4 h-4" />
               </a>
@@ -50,7 +50,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
-                className="w-9 h-9 rounded-full border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-600 transition-all duration-200"
+                className="w-9 h-9 rounded-full border border-neutral-800 flex items-center justify-center text-muted hover:text-white hover:border-neutral-600 transition-all duration-[250ms] ease cursor-pointer"
               >
                 <Linkedin className="w-4 h-4" />
               </a>
@@ -58,10 +58,10 @@ const Footer = () => {
 
             {/* Contact */}
             <div className="space-y-1.5 text-sm">
-              <a href="mailto:hello@sprintwear.com" className="block text-neutral-500 hover:text-white transition-colors duration-200">
+              <a href="mailto:hello@sprintwear.com" className="block text-neutral-500 hover:text-white transition-all duration-[250ms] ease cursor-pointer">
                 hello@sprintwear.com
               </a>
-              <a href="tel:+919700000003" className="block text-neutral-500 hover:text-white transition-colors duration-200">
+              <a href="tel:+919700000003" className="block text-neutral-500 hover:text-white transition-all duration-[250ms] ease cursor-pointer">
                 +91 97*******3
               </a>
             </div>
@@ -69,7 +69,7 @@ const Footer = () => {
 
           {/* Company */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-5">Company</h4>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-muted mb-5">Company</h4>
             <ul className="space-y-3">
               <FooterLink href="/about">About Us</FooterLink>
               <FooterLink href="/craftsmanship">Craftsmanship</FooterLink>
@@ -81,7 +81,7 @@ const Footer = () => {
 
           {/* Support */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-5">Support</h4>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-muted mb-5">Support</h4>
             <ul className="space-y-3">
               <FooterLink href="/">Home</FooterLink>
               <FooterLink href="/stores">Store Locator</FooterLink>
@@ -93,7 +93,7 @@ const Footer = () => {
 
           {/* Legal */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-5">Legal</h4>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-muted mb-5">Legal</h4>
             <ul className="space-y-3">
               <FooterLink href="/privacy">Privacy Policy</FooterLink>
               <FooterLink href="/terms">Terms & Conditions</FooterLink>
@@ -135,4 +135,3 @@ const Footer = () => {
 };
 
 export default Footer;
-

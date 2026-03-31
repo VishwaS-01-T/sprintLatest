@@ -28,7 +28,7 @@ const AddedToCartNotification = () => {
 
       {/* Notification Panel */}
       <div className="fixed top-4 right-4 z-[100] w-full max-w-sm animate-slide-in-right">
-        <div className="bg-white rounded-2xl shadow-2xl border border-neutral-100 overflow-hidden">
+        <div className="bg-white rounded-[20px] shadow-[var(--shadow-soft)] border border-neutral-100 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
             <div className="flex items-center gap-2">
@@ -37,7 +37,7 @@ const AddedToCartNotification = () => {
             </div>
             <button
               onClick={dismissNotification}
-              className="p-1 hover:bg-neutral-100 rounded-full transition-colors"
+               className="p-1 hover:bg-neutral-100 rounded-full transition-all duration-[250ms] ease cursor-pointer"
             >
               <X className="w-5 h-5 text-neutral-500" />
             </button>
@@ -46,11 +46,11 @@ const AddedToCartNotification = () => {
           {/* Product Info */}
           <div className="flex gap-4 p-5">
             {/* Product Image */}
-            <div className="shrink-0 w-20 h-20 rounded-xl bg-neutral-100 overflow-hidden">
+            <div className="shrink-0 w-20 h-20 rounded-[20px] bg-neutral-100 overflow-hidden">
               <img
                 src={product.thumbnail || product.images?.[0]}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.04]"
               />
             </div>
 
@@ -59,8 +59,8 @@ const AddedToCartNotification = () => {
               <h4 className="font-bold text-neutral-900 text-sm leading-tight truncate">
                 {product.name}
               </h4>
-              <p className="text-xs text-neutral-500 mt-0.5">{product.brand}</p>
-              <p className="text-xs text-neutral-500 mt-1">
+              <p className="text-xs text-muted mt-0.5">{product.brand}</p>
+              <p className="text-xs text-muted mt-1">
                 Size {size}
                 {color && ` · ${color}`}
                 {quantity > 1 && ` · Qty: ${quantity}`}
@@ -76,14 +76,14 @@ const AddedToCartNotification = () => {
             <Link
               href="/cart"
               onClick={dismissNotification}
-              className="flex items-center justify-center w-full py-3.5 bg-neutral-900 text-white font-bold text-sm rounded-xl hover:bg-neutral-800 transition-colors"
+              className="flex items-center justify-center w-full py-2.5 px-6 bg-neutral-900 text-white font-bold text-sm rounded-[20px] hover:bg-neutral-800 hover:shadow-[var(--shadow-soft)] transition-all duration-[250ms] ease cursor-pointer"
             >
               View Bag ({itemCount})
             </Link>
             <Link
               href={`/product/${product.slug || product.id}`}
               onClick={dismissNotification}
-              className="mt-2 flex items-center justify-center w-full py-2.5 text-sm font-semibold text-neutral-700 hover:text-amber-600"
+              className="mt-2 flex items-center justify-center w-full py-2.5 text-sm font-semibold text-neutral-700 hover:text-amber-600 transition-all duration-[250ms] ease cursor-pointer"
             >
               Continue shopping this item
             </Link>

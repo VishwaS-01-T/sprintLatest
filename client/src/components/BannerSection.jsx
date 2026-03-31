@@ -5,7 +5,7 @@ const BannerSection = () => {
   return (
     <>
       {/* Yellow Banner */}
-      <section className="w-full bg-[#E5F525] py-16 px-4">
+      <section className="w-full bg-gradient-to-br from-[#f0fb53] via-[#e5f525] to-[#d4e423] py-20 px-4">
         <div className="max-w-7xl mx-auto flex flex-col items-center justify-center text-center">
           {/* Icons */}
           <div className="flex items-center gap-6 mb-8">
@@ -29,7 +29,7 @@ const BannerSection = () => {
           </div>
           
           {/* Heading */}
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight">
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-black tracking-[-0.02em]">
             <span className="inline-block bg-[#FF3366] text-black px-4 py-2 transform -rotate-1">
               GOOD SHOES
             </span>
@@ -39,38 +39,38 @@ const BannerSection = () => {
       </section>
 
       {/* Features Section */}
-      <section className="w-full bg-white py-16 px-4">
+      <section className="w-full bg-white py-20 px-4">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Free Shipping */}
-          <div className="flex items-center gap-4 p-6 border border-gray-200 rounded-lg">
+          <div className="flex items-center gap-4 p-7 border border-neutral-200 rounded-[20px] shadow-sm hover:-translate-y-1 hover:shadow-[var(--shadow-soft)] transition-all duration-300 ease-out cursor-pointer">
             <div className="w-16 h-16 flex items-center justify-center">
-              <Truck className="w-12 h-12 text-gray-700" strokeWidth={1} />
+              <Truck className="w-12 h-12 text-neutral-700" strokeWidth={1} />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-black">Free shipping</h3>
-              <p className="text-gray-500 text-sm">Free shipping for all orders.</p>
+              <h3 className="font-extrabold text-lg text-black tracking-[-0.02em]">Free shipping</h3>
+              <p className="text-muted text-sm">Free shipping for all orders.</p>
             </div>
           </div>
 
           {/* Cash on Delivery */}
-          <div className="flex items-center gap-4 p-6 border border-gray-200 rounded-lg">
+          <div className="flex items-center gap-4 p-7 border border-neutral-200 rounded-[20px] shadow-sm hover:-translate-y-1 hover:shadow-[var(--shadow-soft)] transition-all duration-300 ease-out cursor-pointer">
             <div className="w-16 h-16 flex items-center justify-center">
-              <Wallet className="w-12 h-12 text-gray-700" strokeWidth={1} />
+              <Wallet className="w-12 h-12 text-neutral-700" strokeWidth={1} />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-black">Cash on delivery</h3>
-              <p className="text-gray-500 text-sm">Cash on delivery at Zero Cost.</p>
+              <h3 className="font-extrabold text-lg text-black tracking-[-0.02em]">Cash on delivery</h3>
+              <p className="text-muted text-sm">Cash on delivery at Zero Cost.</p>
             </div>
           </div>
 
           {/* Easy Return */}
-          <div className="flex items-center gap-4 p-6 border border-gray-200 rounded-lg">
+          <div className="flex items-center gap-4 p-7 border border-neutral-200 rounded-[20px] shadow-sm hover:-translate-y-1 hover:shadow-[var(--shadow-soft)] transition-all duration-300 ease-out cursor-pointer">
             <div className="w-16 h-16 flex items-center justify-center">
-              <RotateCcw className="w-12 h-12 text-gray-700" strokeWidth={1} />
+              <RotateCcw className="w-12 h-12 text-neutral-700" strokeWidth={1} />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-black">Easy return</h3>
-              <p className="text-gray-500 text-sm">Free 7 day Return and Exchange.</p>
+              <h3 className="font-extrabold text-lg text-black tracking-[-0.02em]">Easy return</h3>
+              <p className="text-muted text-sm">Free 7 day Return and Exchange.</p>
             </div>
           </div>
         </div>

@@ -201,7 +201,7 @@ const VideoCarousel = () => {
   return (
     <div className="relative">
       {/* Video Slider Container */}
-      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-neutral-900">
+      <div className="relative overflow-hidden rounded-[20px] md:rounded-[24px] bg-neutral-900 shadow-[var(--shadow-soft)]">
         <div className="flex" ref={sliderRef}>
           {hightlightsSlides.map((list, i) => (
             <div 
@@ -264,7 +264,7 @@ const VideoCarousel = () => {
       {/* Controls Bar */}
       <div className="flex items-center justify-center gap-4 mt-6">
         {/* Progress Indicators */}
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-neutral-100 rounded-full">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-neutral-100 rounded-full shadow-sm">
           {hightlightsSlides.map((_, i) => (
             <button
               key={i}

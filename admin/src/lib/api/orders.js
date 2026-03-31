@@ -1,17 +1,37 @@
 import apiClient from '@/lib/api/client'
+import {
+  getMockOrderById,
+  getMockOrderTimeline,
+  getMockOrders,
+  isMockMode,
+  isNetworkError,
+} from '@/lib/api/mockData'
 
 export const ordersApi = {
   list: async (params = {}) => {
-    const response = await apiClient.get('/admin/orders', { params })
-    return response.data?.data
+    if (isMockMode) return getMockOrders(params)
+    try {
+      const response = await apiClient.get('/admin/orders', { params })
+      return response.data?.data
+    } catch (error) {
+      if (isNetworkError(error)) return getMockOrders(params)
+      throw error
+    }
   },
 
   get: async (orderId) => {
-    const response = await apiClient.get(`/admin/orders/${orderId}`)
-    return response.data?.data?.order
+    if (isMockMode) return getMockOrderById(orderId)
+    try {
+      const response = await apiClient.get(`/admin/orders/${orderId}`)
+      return response.data?.data?.order
+    } catch (error) {
+      if (isNetworkError(error)) return getMockOrderById(orderId)
+      throw error
+    }
   },
 
   updateStatus: async (orderId, status) => {
+    if (isMockMode) return { ...getMockOrderById(orderId), orderStatus: status }
     const response = await apiClient.patch(`/admin/orders/${orderId}/status`, {
       status,
     })
@@ -19,11 +39,18 @@ export const ordersApi = {
   },
 
   timeline: async (orderId) => {
-    const response = await apiClient.get(`/admin/orders/${orderId}/timeline`)
-    return response.data?.data
+    if (isMockMode) return getMockOrderTimeline(orderId)
+    try {
+      const response = await apiClient.get(`/admin/orders/${orderId}/timeline`)
+      return response.data?.data
+    } catch (error) {
+      if (isNetworkError(error)) return getMockOrderTimeline(orderId)
+      throw error
+    }
   },
 
   bulkUpdateStatus: async (orderIds, status) => {
+    if (isMockMode) return { success: true, orderIds, status }
     const response = await apiClient.post('/admin/orders/bulk/status', {
       orderIds,
       status,

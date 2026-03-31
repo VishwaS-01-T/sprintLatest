@@ -18,7 +18,7 @@ const ProductGrid = ({
   // Loading skeleton
   if (loading) {
     return (
-      <div className={`grid gap-6 ${getGridCols(columns)} ${className}`}>
+      <div className={`grid gap-7 ${getGridCols(columns)} ${className}`}>
         {[...Array(8)].map((_, i) => (
           <ProductCardSkeleton key={i} index={i} />
         ))}
@@ -69,7 +69,7 @@ const ProductGrid = ({
   }
 
   return (
-    <div className={`grid gap-6 ${getGridCols(columns)} ${className}`}>
+    <div className={`grid gap-7 ${getGridCols(columns)} ${className}`}>
       {products.map((product, index) => (
         <ProductCard key={product.id} {...product} index={index} />
       ))}
@@ -92,10 +92,10 @@ function getGridCols(columns) {
 // Loading skeleton component
 const ProductCardSkeleton = ({ index = 0 }) => (
   <div
-    className="rounded-2xl bg-white shadow-sm overflow-hidden animate-pulse"
+    className="rounded-[20px] bg-white shadow-sm overflow-hidden animate-pulse"
     style={{ animationDelay: `${index * 100}ms` }}
   >
-    <div className="aspect-square bg-gradient-to-br from-neutral-200 to-neutral-100" />
+    <div className="aspect-square animate-shimmer" />
     <div className="p-5 space-y-4">
       <div className="h-3 bg-neutral-200 rounded-full w-1/4" />
       <div className="h-5 bg-neutral-200 rounded-full w-3/4" />

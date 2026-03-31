@@ -95,10 +95,10 @@ const ProductsPage = () => {
     <div className="min-h-screen bg-neutral-50 page-transition">
       {/* Header */}
       <div className="bg-white border-b border-neutral-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm text-neutral-500 mb-6 animate-fade-in">
-            <Link href="/" className="hover:text-neutral-900 transition-colors">
+            <Link href="/" className="hover:text-neutral-900 transition-all duration-[250ms] ease cursor-pointer">
               Home
             </Link>
             <ChevronRight className="w-4 h-4" />
@@ -122,13 +122,13 @@ const ProductsPage = () => {
           </nav>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900 animate-slide-up">
-              {getPageTitle()}
-            </h1>
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.02em] text-neutral-900 animate-slide-up">
+                {getPageTitle()}
+              </h1>
 
             {/* Desktop Sort */}
             <div className="hidden lg:flex items-center gap-4 animate-fade-in">
-              <span className="text-sm text-neutral-500">{total} products</span>
+              <span className="text-sm text-muted">{total} products</span>
               <SortDropdown
                 value={filters.sort || "featured"}
                 onChange={(sortId) => handleFilterChange({ sort: sortId })}
@@ -139,7 +139,7 @@ const ProductsPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex gap-10">
           {/* Sidebar Filters - Desktop */}
           <aside className="hidden lg:block w-64 shrink-0">
@@ -182,17 +182,17 @@ const ProductsPage = () => {
                 <button
                   disabled={loading || (pagination?.page || 1) <= 1}
                   onClick={() => updateFilters({ page: (pagination?.page || 1) - 1 })}
-                  className="px-5 py-3 text-sm font-semibold text-neutral-900 bg-white border-2 border-neutral-300 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:border-amber-500 hover:text-amber-600 transition-all duration-300"
+                  className="px-6 py-2.5 text-sm font-semibold text-neutral-900 bg-white border-2 border-neutral-300 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:border-amber-500 hover:text-amber-600 transition-all duration-[250ms] ease cursor-pointer"
                 >
                   Previous
                 </button>
-                <span className="text-sm text-neutral-500">
+                <span className="text-sm text-muted">
                   Page {pagination?.page || 1} of {pagination?.totalPages || 1}
                 </span>
                 <button
                   disabled={loading || (pagination?.page || 1) >= (pagination?.totalPages || 1)}
                   onClick={() => updateFilters({ page: (pagination?.page || 1) + 1 })}
-                  className="px-5 py-3 text-sm font-semibold text-neutral-900 bg-white border-2 border-neutral-300 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:border-amber-500 hover:text-amber-600 transition-all duration-300"
+                  className="px-6 py-2.5 text-sm font-semibold text-neutral-900 bg-white border-2 border-neutral-300 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:border-amber-500 hover:text-amber-600 transition-all duration-[250ms] ease cursor-pointer"
                 >
                   Next
                 </button>

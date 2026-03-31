@@ -112,7 +112,7 @@ const ProductFilters = ({
                   {category.name}
                 </span>
               </div>
-              <span className="text-xs font-medium text-neutral-400 bg-neutral-100 px-2 py-1 rounded-full">
+              <span className="text-xs font-medium text-muted bg-neutral-100 px-2 py-1 rounded-full">
                 {category.count}
               </span>
               <input
@@ -245,7 +245,7 @@ const ProductFilters = ({
         onToggle={() => toggleSection("availability")}
       >
         <label
-          className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all ${
+          className={`flex items-center gap-3 cursor-pointer p-3 rounded-[20px] transition-all duration-[250ms] ease ${
             filters.inStock
               ? "bg-green-50 border-2 border-green-500"
               : "hover:bg-neutral-50 border-2 border-transparent"
@@ -280,7 +280,7 @@ const ProductFilters = ({
       {activeFiltersCount > 0 && (
         <button
           onClick={onReset}
-          className="w-full py-3 text-sm font-bold text-neutral-700 bg-neutral-100 rounded-xl hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2"
+          className="w-full py-2.5 px-6 text-sm font-bold text-neutral-700 bg-neutral-100 rounded-[20px] hover:bg-neutral-200 hover:shadow-sm transition-all duration-[250ms] ease cursor-pointer flex items-center justify-center gap-2"
         >
           <X className="w-4 h-4" />
           Clear All Filters ({activeFiltersCount})
@@ -300,7 +300,7 @@ const ProductFilters = ({
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileFiltersOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-neutral-700 bg-white border-2 border-neutral-200 rounded-xl hover:border-amber-300 transition-colors"
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-neutral-700 bg-white border-2 border-neutral-200 rounded-[20px] hover:border-amber-300 hover:shadow-sm transition-all duration-[250ms] ease cursor-pointer"
           >
             <SlidersHorizontal className="w-4 h-4" />
             Filters
@@ -326,7 +326,7 @@ const ProductFilters = ({
             <SlidersHorizontal className="w-5 h-5 text-amber-500" />
             <h2 className="text-lg font-bold text-neutral-900">Filters</h2>
           </div>
-          <span className="text-sm font-medium text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full">
+          <span className="text-sm font-medium text-muted bg-neutral-100 px-3 py-1 rounded-full">
             {totalProducts} items
           </span>
         </div>
@@ -343,7 +343,7 @@ const ProductFilters = ({
           />
 
           {/* Panel */}
-          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-2xl animate-slide-in-right">
+          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-[var(--shadow-soft)] animate-slide-in-right">
             <div className="flex items-center justify-between p-5 border-b border-neutral-200 bg-neutral-50">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="w-5 h-5 text-amber-500" />
@@ -351,7 +351,7 @@ const ProductFilters = ({
               </div>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
-                className="p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-200 rounded-lg transition-colors"
+                className="p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-200 rounded-[20px] transition-all duration-[250ms] ease cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -368,16 +368,16 @@ const ProductFilters = ({
 
 // Filter Section Component
 const FilterSection = ({ title, isExpanded, onToggle, children }) => (
-  <div className="border-b border-neutral-100 pb-6">
+  <div className="border-b border-neutral-100 pb-7">
     <button
       onClick={onToggle}
-      className="flex items-center justify-between w-full py-2 text-left group"
+      className="flex items-center justify-between w-full py-2 text-left group cursor-pointer transition-all duration-[250ms] ease"
     >
       <span className="text-sm font-bold text-neutral-900 group-hover:text-amber-600 transition-colors">
         {title}
       </span>
       <ChevronDown
-        className={`w-5 h-5 text-neutral-400 transition-all duration-300 ${
+        className={`w-5 h-5 text-muted transition-all duration-300 ${
           isExpanded ? "rotate-180 text-amber-500" : ""
         }`}
       />
@@ -400,7 +400,7 @@ const SortDropdown = ({ value, onChange }) => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-neutral-700 bg-white border-2 border-neutral-200 rounded-xl hover:border-amber-300 transition-colors"
+        className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-neutral-700 bg-white border-2 border-neutral-200 rounded-[20px] hover:border-amber-300 hover:shadow-sm transition-all duration-[250ms] ease cursor-pointer"
       >
         <span className="hidden sm:inline text-neutral-500">Sort:</span>
         <span className="text-neutral-900">{currentSort.name}</span>
@@ -415,7 +415,7 @@ const SortDropdown = ({ value, onChange }) => {
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-52 bg-white border border-neutral-200 rounded-xl shadow-xl z-20 overflow-hidden animate-slide-down">
+          <div className="absolute right-0 mt-2 w-52 bg-white border border-neutral-200 rounded-[20px] shadow-[var(--shadow-soft)] z-20 overflow-hidden animate-slide-down">
             {sortOptions.map((option) => (
               <button
                 key={option.id}
@@ -423,7 +423,7 @@ const SortDropdown = ({ value, onChange }) => {
                   onChange(option.id);
                   setIsOpen(false);
                 }}
-                className={`flex items-center justify-between w-full px-4 py-3 text-left text-sm transition-colors ${
+                className={`flex items-center justify-between w-full px-4 py-3 text-left text-sm transition-all duration-[250ms] ease cursor-pointer ${
                   value === option.id
                     ? "bg-amber-50 text-amber-700 font-bold"
                     : "text-neutral-700 hover:bg-neutral-50"

@@ -132,26 +132,26 @@ const ProductDetail = ({ productId }) => {
   return (
     <div className="min-h-screen bg-white">
       {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <nav className="flex items-center gap-2 text-sm animate-fade-in">
-          <Link href="/" className="text-neutral-500 hover:text-amber-600 transition-colors">
+          <Link href="/" className="text-neutral-500 hover:text-amber-600 transition-all duration-[250ms] ease cursor-pointer">
             Home
           </Link>
-          <ChevronRight className="w-4 h-4 text-neutral-400" />
+          <ChevronRight className="w-4 h-4 text-muted" />
           <Link
             href="/products"
-            className="text-neutral-500 hover:text-amber-600 transition-colors"
+            className="text-neutral-500 hover:text-amber-600 transition-all duration-[250ms] ease cursor-pointer"
           >
             Products
           </Link>
-          <ChevronRight className="w-4 h-4 text-neutral-400" />
+          <ChevronRight className="w-4 h-4 text-muted" />
           <Link
             href={`/products?category=${product.categorySlug || product.category}`}
-            className="text-neutral-500 hover:text-amber-600 transition-colors capitalize"
+            className="text-neutral-500 hover:text-amber-600 transition-all duration-[250ms] ease cursor-pointer capitalize"
           >
             {product.category}
           </Link>
-          <ChevronRight className="w-4 h-4 text-neutral-400" />
+          <ChevronRight className="w-4 h-4 text-muted" />
           <span className="text-neutral-900 font-semibold truncate max-w-[200px]">
             {product.name}
           </span>
@@ -162,13 +162,13 @@ const ProductDetail = ({ productId }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Image Gallery */}
-          <div className="space-y-4 animate-slide-up">
+          <div className="space-y-5 animate-slide-up">
             {/* Main Image */}
-            <div className="relative aspect-square rounded-3xl bg-neutral-100 overflow-hidden shadow-lg">
+            <div className="relative aspect-square rounded-[20px] bg-neutral-100 overflow-hidden shadow-[var(--shadow-soft)]">
               <img
                 src={product.images[selectedImage] || product.thumbnail}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.04]"
               />
 
               {/* Badges */}
@@ -191,7 +191,7 @@ const ProductDetail = ({ productId }) => {
               </div>
 
               {/* Share Button */}
-              <button className="absolute top-5 right-5 p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white hover:scale-110 transition-all">
+              <button className="absolute top-5 right-5 p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-[var(--shadow-soft)] hover:bg-white hover:scale-110 transition-all duration-[250ms] ease cursor-pointer">
                 <Share2 className="w-5 h-5 text-neutral-700" />
               </button>
             </div>
@@ -203,7 +203,7 @@ const ProductDetail = ({ productId }) => {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`shrink-0 w-20 h-20 rounded-xl overflow-hidden border-3 transition-all shadow-md ${
+                    className={`shrink-0 w-20 h-20 rounded-[20px] overflow-hidden border-3 transition-all duration-[250ms] ease shadow-sm hover:shadow-[var(--shadow-soft)] cursor-pointer ${
                       selectedImage === index
                         ? 'border-amber-500 scale-105'
                         : 'border-transparent hover:border-neutral-300'
@@ -222,7 +222,7 @@ const ProductDetail = ({ productId }) => {
 
           {/* Product Info */}
           <div
-            className="space-y-6 animate-slide-up stagger-1"
+            className="space-y-8 animate-slide-up stagger-1"
             style={{ animationFillMode: 'backwards' }}
           >
             {/* Brand & Name */}
@@ -230,7 +230,7 @@ const ProductDetail = ({ productId }) => {
               <p className="text-sm font-bold text-amber-600 uppercase tracking-widest mb-3">
                 {product.brand}
               </p>
-              <h1 className="text-3xl lg:text-4xl font-bold text-neutral-900 mb-4 leading-tight">
+              <h1 className="text-3xl lg:text-4xl font-extrabold tracking-[-0.02em] text-neutral-900 mb-4 leading-tight">
                 {product.name}
               </h1>
 
@@ -255,13 +255,13 @@ const ProductDetail = ({ productId }) => {
             </div>
 
             {/* Price */}
-            <div className="flex items-center gap-4 py-4 px-5 bg-neutral-50 rounded-2xl">
+            <div className="flex items-center gap-4 py-5 px-6 bg-neutral-50 rounded-[20px]">
               <span className="text-3xl font-bold text-neutral-900">
                 ₹{product.price.toFixed(2)}
               </span>
               {product.originalPrice && (
                 <>
-                  <span className="text-xl text-neutral-400 line-through">
+                  <span className="text-xl text-muted line-through">
                     ₹{product.originalPrice.toFixed(2)}
                   </span>
                   <span className="px-3 py-1.5 text-sm font-bold bg-rose-100 text-rose-600 rounded-full">
@@ -285,7 +285,7 @@ const ProductDetail = ({ productId }) => {
                     <button
                       key={index}
                       onClick={() => setSelectedColor(index)}
-                      className={`w-12 h-12 rounded-xl border-3 transition-all shadow-md ${
+                      className={`w-12 h-12 rounded-[20px] border-3 transition-all duration-[250ms] ease shadow-sm hover:shadow-[var(--shadow-soft)] cursor-pointer ${
                         selectedColor === index
                           ? 'border-amber-500 scale-110 ring-2 ring-amber-200'
                           : 'border-neutral-200 hover:border-neutral-400'
@@ -302,12 +302,12 @@ const ProductDetail = ({ productId }) => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-neutral-900">Select Size</h3>
-                <button className="text-sm font-medium text-amber-600 hover:text-amber-700 transition-colors">
+                <button className="text-sm font-medium text-amber-600 hover:text-amber-700 transition-all duration-[250ms] ease cursor-pointer">
                   📏 Size Guide
                 </button>
               </div>
               <div
-                className={`grid grid-cols-5 sm:grid-cols-6 gap-2 rounded-2xl transition-all ${
+                className={`grid grid-cols-5 sm:grid-cols-6 gap-2 rounded-[20px] transition-all ${
                   shakeSizes ? 'animate-shake' : ''
                 }`}
               >
@@ -315,7 +315,7 @@ const ProductDetail = ({ productId }) => {
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className={`py-3.5 text-sm font-bold rounded-xl border-2 transition-all ${
+                    className={`py-3.5 text-sm font-bold rounded-[20px] border-2 transition-all duration-[250ms] ease cursor-pointer ${
                       selectedSize === size
                         ? 'bg-neutral-900 text-white border-neutral-900 shadow-lg'
                         : shakeSizes
@@ -337,10 +337,10 @@ const ProductDetail = ({ productId }) => {
             {/* Quantity */}
             <div>
               <h3 className="text-sm font-bold text-neutral-900 mb-3">Quantity</h3>
-              <div className="inline-flex items-center border-2 border-neutral-200 rounded-xl overflow-hidden">
+              <div className="inline-flex items-center border-2 border-neutral-200 rounded-[20px] overflow-hidden">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-3.5 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                  className="p-3.5 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-all duration-[250ms] ease cursor-pointer"
                   disabled={quantity <= 1}
                 >
                   <Minus className="w-4 h-4" />
@@ -350,7 +350,7 @@ const ProductDetail = ({ productId }) => {
                 </span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="p-3.5 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                  className="p-3.5 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-all duration-[250ms] ease cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -358,14 +358,14 @@ const ProductDetail = ({ productId }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-4 pt-2">
               <div className="flex gap-3">
                 <button
                   onClick={handleAddToCart}
                   disabled={!product.inStock}
-                  className={`flex-1 flex items-center justify-center gap-2.5 py-4 px-6 text-base font-bold rounded-2xl transition-all duration-200 ${
+                  className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-6 text-base font-bold rounded-[20px] transition-all duration-[250ms] ease cursor-pointer ${
                     product.inStock
-                      ? 'bg-neutral-900 text-white hover:bg-neutral-700 active:scale-[0.98]'
+                      ? 'bg-neutral-900 text-white hover:bg-neutral-700 hover:shadow-[var(--shadow-soft)] active:scale-[0.98]'
                       : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
                   }`}
                 >
@@ -374,10 +374,10 @@ const ProductDetail = ({ productId }) => {
                 </button>
                 <button
                   onClick={handleWishlistToggle}
-                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
+                  className={`p-4 rounded-[20px] border-2 transition-all duration-[250ms] ease cursor-pointer active:scale-95 ${
                     isFavorite
                       ? 'bg-rose-50 border-rose-300 text-rose-500'
-                      : 'bg-white border-neutral-200 text-neutral-400 hover:border-rose-300 hover:text-rose-400'
+                      : 'bg-white border-neutral-200 text-muted hover:border-rose-300 hover:text-rose-400'
                   }`}
                   disabled={wishlistLoading}
                 >
@@ -388,7 +388,7 @@ const ProductDetail = ({ productId }) => {
               {product.inStock && (
                 <button
                   onClick={handleBuyNow}
-                  className="w-full flex items-center justify-center gap-2.5 py-4 px-6 text-base font-bold text-neutral-900 bg-amber-400 rounded-2xl hover:bg-amber-300 active:scale-[0.98] transition-all duration-200"
+                  className="w-full flex items-center justify-center gap-2.5 py-2.5 px-6 text-base font-bold text-neutral-900 bg-amber-400 rounded-[20px] hover:bg-amber-300 hover:shadow-[var(--shadow-glow-amber)] active:scale-[0.98] transition-all duration-[250ms] ease cursor-pointer"
                 >
                   <Zap className="w-5 h-5" />
                   Buy Now
@@ -397,26 +397,26 @@ const ProductDetail = ({ productId }) => {
             </div>
 
             {/* Benefits */}
-            <div className="flex flex-col gap-0 border border-neutral-200 rounded-2xl overflow-hidden mt-2">
+            <div className="flex flex-col gap-0 border border-neutral-200 rounded-[20px] overflow-hidden mt-3 shadow-sm">
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-neutral-100">
                 <Truck className="w-4 h-4 text-neutral-500 shrink-0" />
                 <div className="flex-1">
                   <span className="text-sm font-semibold text-neutral-800">Free Delivery</span>
-                  <span className="text-sm text-neutral-400"> · On orders over ₹5,000</span>
+                  <span className="text-sm text-muted"> · On orders over ₹5,000</span>
                 </div>
               </div>
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-neutral-100">
                 <RotateCcw className="w-4 h-4 text-neutral-500 shrink-0" />
                 <div className="flex-1">
                   <span className="text-sm font-semibold text-neutral-800">30-Day Returns</span>
-                  <span className="text-sm text-neutral-400"> · Easy returns</span>
+                  <span className="text-sm text-muted"> · Easy returns</span>
                 </div>
               </div>
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-neutral-100">
                 <Shield className="w-4 h-4 text-neutral-500 shrink-0" />
                 <div className="flex-1">
                   <span className="text-sm font-semibold text-neutral-800">Secure Payment</span>
-                  <span className="text-sm text-neutral-400"> · 100% protected</span>
+                  <span className="text-sm text-muted"> · 100% protected</span>
                 </div>
               </div>
               
@@ -431,7 +431,7 @@ const ProductDetail = ({ productId }) => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`pb-4 text-sm font-bold capitalize whitespace-nowrap border-b-3 transition-all ${
+                className={`pb-4 text-sm font-bold capitalize whitespace-nowrap border-b-3 transition-all duration-[250ms] ease cursor-pointer ${
                   activeTab === tab
                     ? 'text-amber-600 border-amber-500'
                     : 'text-neutral-500 border-transparent hover:text-neutral-900'
@@ -469,7 +469,7 @@ const ProductDetail = ({ productId }) => {
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div className="mt-20 border-t border-neutral-200 pt-12">
+          <div className="mt-24 border-t border-neutral-200 pt-16">
             <h2 className="text-2xl font-bold text-neutral-900 mb-8">
               You May Also <span className="text-amber-500">Like</span>
             </h2>
