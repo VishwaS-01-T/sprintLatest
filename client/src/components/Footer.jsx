@@ -20,16 +20,16 @@ const Footer = () => {
   return (
     <footer className="bg-neutral-950 text-white">
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-8">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-24 pb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-8">
 
           {/* Brand Column */}
-          <div className="sm:col-span-2 lg:col-span-2 flex flex-col gap-6">
+          <div className="lg:col-span-2 flex flex-col gap-6">
             <div>
-              <p className="text-xl sm:text-2xl font-black tracking-tight">
+              <p className="text-2xl font-black tracking-tight">
                 SPRINT SHOES
               </p>
-              <p className="text-muted text-xs sm:text-sm mt-2 leading-relaxed max-w-xs">
+              <p className="text-muted text-sm mt-2 leading-relaxed max-w-xs">
                 Crafted for speed. Built for style. Premium footwear for every stride.
               </p>
             </div>
@@ -69,10 +69,8 @@ const Footer = () => {
 
           {/* Company */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-muted mb-3 sm:mb-5">
-              Company
-            </h4>
-            <ul className="space-y-2 sm:space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-muted mb-5">Company</h4>
+            <ul className="space-y-3">
               <FooterLink href="/about">About Us</FooterLink>
               <FooterLink href="/craftsmanship">Craftsmanship</FooterLink>
               <FooterLink href="/garage">The Inventory</FooterLink>

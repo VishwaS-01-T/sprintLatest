@@ -95,9 +95,9 @@ const ProductsPage = () => {
     <div className="min-h-screen bg-neutral-50 page-transition">
       {/* Header */}
       <div className="bg-white border-b border-neutral-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-xs sm:text-sm text-neutral-500 mb-4 sm:mb-6 animate-fade-in overflow-x-auto">
+          <nav className="flex items-center gap-2 text-sm text-neutral-500 mb-6 animate-fade-in">
             <Link href="/" className="hover:text-neutral-900 transition-all duration-[250ms] ease cursor-pointer">
               Home
             </Link>

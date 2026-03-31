@@ -31,9 +31,9 @@ const Highlights = () => {
     <section
       className="
         w-full overflow-hidden
-        py-16 px-4
-        sm:py-20 sm:px-6
-        lg:py-8 lg:px-8
+        py-20 px-4
+        sm:py-24 sm:px-6
+        lg:py-12 lg:px-8
         bg-white
       "
     >
@@ -58,6 +58,7 @@ const Highlights = () => {
                 text-neutral-900
                 text-3xl sm:text-4xl lg:text-5xl
                 font-bold
+                opacity-0 translate-y-8
               "
               variants={itemVariants}
             >
@@ -65,44 +66,37 @@ const Highlights = () => {
             </motion.h2>
           </div>
 
-          <motion.div 
-            className="flex flex-wrap items-center gap-3"
-            variants={itemVariants}
-          >
-            <motion.button 
-              className="
-                group
-                inline-flex items-center gap-2
-                px-5 py-2.5
-                bg-neutral-900 hover:bg-neutral-800
-                text-white
-                text-sm font-medium
-                rounded-full
-                transition-all duration-200
-                hover:shadow-lg
-              "
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
+          <div className="flex flex-wrap items-center gap-3">
+            <button className="
+              link
+              group
+              inline-flex items-center gap-2
+              px-5 py-2.5
+              bg-neutral-900 hover:bg-neutral-800
+              text-white
+              text-sm font-medium
+              rounded-full
+              opacity-0 translate-y-8
+              transition-all duration-200
+              hover:shadow-lg
+            ">
               <Play className="w-4 h-4" fill="currentColor" />
               Watch Collection
             </motion.button>
 
-            <motion.button 
-              className="
-                group
-                inline-flex items-center gap-2
-                px-5 py-2.5
-                bg-white hover:bg-neutral-50
-                text-neutral-900
-                text-sm font-medium
-                rounded-full
-                border-2 border-neutral-200 hover:border-amber-500
-                transition-all duration-200
-              "
-              whileHover={{ scale: 1.02, borderColor: '#f59e0b' }}
-              whileTap={{ scale: 0.98 }}
-            >
+            <button className="
+              link
+              group
+              inline-flex items-center gap-2
+              px-5 py-2.5
+              bg-white hover:bg-neutral-50
+              text-neutral-900
+              text-sm font-medium
+              rounded-full
+              border-2 border-neutral-200 hover:border-amber-500
+              opacity-0 translate-y-8
+              transition-all duration-200
+            ">
               Shop Now
               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </motion.button>

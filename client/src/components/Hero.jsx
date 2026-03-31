@@ -3,8 +3,8 @@ import { Link } from "../hooks/useRouter.jsx";
 import { motion } from "framer-motion";
 import { cn } from "../lib/utils.js";
 
-// Animated elegant shape component for background - optimized with React.memo
-const ElegantShape = React.memo(function ElegantShape({
+// Animated elegant shape component for background
+function ElegantShape({
   className,
   delay = 0,
   width = 400,
@@ -61,16 +61,7 @@ const ElegantShape = React.memo(function ElegantShape({
       </motion.div>
     </motion.div>
   );
-}, (prevProps, nextProps) => {
-  // Only re-render if essential props change
-  return (
-    prevProps.delay === nextProps.delay &&
-    prevProps.width === nextProps.width &&
-    prevProps.height === nextProps.height &&
-    prevProps.rotate === nextProps.rotate &&
-    prevProps.gradient === nextProps.gradient
-  );
-});
+}
 
 const Hero = () => {
   const fadeUpVariants = {
@@ -88,7 +79,7 @@ const Hero = () => {
 
   return (
     <section className="relative w-full h-[500px] bg-[#030303] overflow-hidden">
-      {/* Subtle gradient overlay */}      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.03] via-transparent to-rose-500/[0.03] blur-3xl" />
+      {/* Subtle gradient overlay */}      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.08] via-transparent to-rose-500/[0.08] blur-3xl" />
 
       {/* Animated Geometric Shapes Background */}
       <div className="absolute inset-0 overflow-hidden">
@@ -155,10 +146,10 @@ const Hero = () => {
               initial="hidden"
               animate="visible"
             >
-              <p className="text-sm font-light text-neutral-400 tracking-widest mb-3 italic">
+              <p className="text-sm font-light text-muted tracking-widest mb-3 italic">
                 Embracing Excellence
               </p>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight tracking-tight uppercase">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-[-0.02em] uppercase">
                 MODEL-X SHOENAME?
               </h1>
             </motion.div>
@@ -173,13 +164,13 @@ const Hero = () => {
             >
               <Link
                 href="/products?gender=men"
-                className="inline-flex items-center justify-center px-10 py-4 bg-[#F2D200] text-black font-bold text-sm uppercase tracking-wide hover:bg-[#E5C700] transition-all duration-300"
+                className="inline-flex items-center justify-center px-10 py-2.5 bg-[#F2D200] text-black font-bold text-sm uppercase tracking-wide hover:bg-[#E5C700] hover:shadow-[var(--shadow-glow-amber)] transition-all duration-[250ms] ease rounded-[20px] cursor-pointer"
               >
                 Shop Men
               </Link>
               <Link
                 href="/products?gender=women"
-                className="inline-flex items-center justify-center px-10 py-4 bg-[#F2D200] text-black font-bold text-sm uppercase tracking-wide hover:bg-[#E5C700] transition-all duration-300"
+                className="inline-flex items-center justify-center px-10 py-2.5 bg-[#F2D200] text-black font-bold text-sm uppercase tracking-wide hover:bg-[#E5C700] hover:shadow-[var(--shadow-glow-amber)] transition-all duration-[250ms] ease rounded-[20px] cursor-pointer"
               >
                 Shop Women
               </Link>
@@ -198,9 +189,7 @@ const Hero = () => {
               <img
                 src="/assets/shoes/shoe-10.png"
                 alt="X Lows Armstrong Shoe"
-                className="relative z-10 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl h-auto object-contain drop-shadow-2xl"
-                loading="lazy"
-                sizes="(max-width: 640px) 80vw, (max-width: 768px) 60vw, (max-width: 1024px) 50vw, 600px"
+                className="relative z-10 w-full max-w-xl h-auto object-contain drop-shadow-2xl"
               />
             </div>
           </motion.div>

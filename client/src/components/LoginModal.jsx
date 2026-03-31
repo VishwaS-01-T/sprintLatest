@@ -41,8 +41,8 @@ function OtpBoxes({ value, onChange, onKeyDown, inputRefs, error }) {
                 }
               : undefined
           }
-          className={`w-11 h-12 text-center text-lg font-bold border-2 rounded-lg focus:outline-none transition ${
-            error ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-black'
+          className={`w-11 h-12 text-center text-lg font-bold border-2 rounded-[20px] focus:outline-none transition-all duration-[250ms] ease ${
+            error ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60'
           }`}
         />
       ))}
@@ -96,6 +96,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const [details, setDetails] = useState({
     firstName: '',
     lastName: '',
+    username: '',
     email: '',
     password: '',
     gender: 'UNISEX',
@@ -132,6 +133,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
     setDetails({
       firstName: '',
       lastName: '',
+      username: '',
       email: '',
       password: '',
       gender: 'UNISEX',
@@ -256,6 +258,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
     const errs = {};
     if (details.firstName.trim().length < 2) errs.firstName = 'At least 2 characters';
     if (details.lastName.trim().length < 2) errs.lastName = 'At least 2 characters';
+    if (details.username.trim().length < 3) errs.username = 'At least 3 characters';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email)) errs.email = 'Enter a valid email';
     if (details.password.length < 8) errs.password = 'At least 8 characters';
     if (!details.dateOfBirth) errs.dateOfBirth = 'Date of birth is required';
@@ -341,7 +344,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
     <button
       type="button"
       onClick={onClick}
-      className="absolute top-4 left-4 p-1 hover:bg-gray-100 rounded-full transition"
+      className="absolute top-4 left-4 p-1 hover:bg-gray-100 rounded-full transition-all duration-[250ms] ease cursor-pointer"
     >
       <ArrowLeft className="w-6 h-6 text-gray-500" />
     </button>
@@ -353,7 +356,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
         <button
           type="button"
           onClick={onResend}
-          className="text-sm font-semibold text-amber-600 hover:text-amber-700 transition"
+          className="text-sm font-semibold text-amber-600 hover:text-amber-700 transition-all duration-[250ms] ease cursor-pointer"
         >
           {label}
         </button>
@@ -373,12 +376,12 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 p-8 z-10 max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white rounded-[20px] shadow-[var(--shadow-soft)] w-full max-w-md mx-4 p-8 z-10 max-h-[90vh] overflow-y-auto">
         {/* Close */}
         <button
           type="button"
           onClick={handleClose}
-          className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition"
+          className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-all duration-[250ms] ease cursor-pointer"
         >
           <X className="w-6 h-6 text-gray-500" />
         </button>
@@ -406,7 +409,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
 
             <form onSubmit={handleGetOtp}>
               <div className="mb-6">
-                <div className="flex border border-gray-300 rounded-lg overflow-hidden focus-within:border-black transition">
+                <div className="flex border border-gray-300 rounded-[20px] overflow-hidden focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-300/60 transition-all duration-[250ms] ease">
                   <span className="flex items-center px-3 text-gray-500 text-sm bg-gray-50 border-r border-gray-300 select-none">
                     +91
                   </span>
@@ -416,7 +419,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     maxLength={10}
-                    className="flex-1 px-4 py-4 text-black placeholder:text-gray-400 focus:outline-none"
+                    className="flex-1 px-4 py-4 text-black placeholder:text-muted focus:outline-none"
                   />
                 </div>
               </div>
@@ -424,7 +427,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
               <button
                 type="submit"
                 disabled={phone.length !== 10 || loading}
-                className={`w-full py-4 rounded-full font-semibold transition flex items-center justify-center gap-2 ${
+                className={`w-full py-2.5 px-6 rounded-full font-semibold transition-all duration-[250ms] ease cursor-pointer flex items-center justify-center gap-2 ${
                   phone.length === 10 && !loading
                     ? 'bg-black text-white hover:bg-gray-800'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
@@ -518,7 +521,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                     placeholder="First Name"
                     value={details.firstName}
                     onChange={(e) => setDetail('firstName', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition ${detailsErrors.firstName ? 'border-red-400' : 'border-gray-300'}`}
+                    className={`w-full px-4 py-3 border rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.firstName ? 'border-red-400' : 'border-gray-300'}`}
                   />
                   {detailsErrors.firstName && (
                     <p className="text-xs text-red-500 mt-1">{detailsErrors.firstName}</p>
@@ -530,7 +533,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                     placeholder="Last Name"
                     value={details.lastName}
                     onChange={(e) => setDetail('lastName', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition ${detailsErrors.lastName ? 'border-red-400' : 'border-gray-300'}`}
+                    className={`w-full px-4 py-3 border rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.lastName ? 'border-red-400' : 'border-gray-300'}`}
                   />
                   {detailsErrors.lastName && (
                     <p className="text-xs text-red-500 mt-1">{detailsErrors.lastName}</p>
@@ -540,11 +543,24 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
 
               <div>
                 <input
+                  type="text"
+                  placeholder="Username (min. 3 chars)"
+                  value={details.username}
+                  onChange={(e) => setDetail('username', e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.username ? 'border-red-400' : 'border-gray-300'}`}
+                />
+                {detailsErrors.username && (
+                  <p className="text-xs text-red-500 mt-1">{detailsErrors.username}</p>
+                )}
+              </div>
+
+              <div>
+                <input
                   type="email"
                   placeholder="Email address"
                   value={details.email}
                   onChange={(e) => setDetail('email', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition ${detailsErrors.email ? 'border-red-400' : 'border-gray-300'}`}
+                  className={`w-full px-4 py-3 border rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.email ? 'border-red-400' : 'border-gray-300'}`}
                 />
                 {detailsErrors.email && (
                   <p className="text-xs text-red-500 mt-1">{detailsErrors.email}</p>
@@ -552,18 +568,18 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
               </div>
 
               <div>
-                <div className={`flex border rounded-lg overflow-hidden focus-within:border-black transition ${detailsErrors.password ? 'border-red-400' : 'border-gray-300'}`}>
+                <div className={`flex border rounded-[20px] overflow-hidden focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.password ? 'border-red-400' : 'border-gray-300'}`}>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Password (min. 8 chars)"
                     value={details.password}
                     onChange={(e) => setDetail('password', e.target.value)}
-                    className="flex-1 px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none"
+                    className="flex-1 px-4 py-3 text-sm text-black placeholder:text-muted focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="px-3 text-gray-400 hover:text-gray-600"
+                    className="px-3 text-muted hover:text-gray-600 transition-all duration-[250ms] ease cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -579,7 +595,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                   <select
                     value={details.gender}
                     onChange={(e) => setDetail('gender', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-black focus:outline-none focus:border-black transition"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-[20px] text-sm text-black focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease"
                   >
                     <option value="MEN">Men</option>
                     <option value="WOMEN">Women</option>
@@ -593,7 +609,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                     type="date"
                     value={details.dateOfBirth}
                     onChange={(e) => setDetail('dateOfBirth', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg text-sm text-black focus:outline-none focus:border-black transition ${detailsErrors.dateOfBirth ? 'border-red-400' : 'border-gray-300'}`}
+                    className={`w-full px-4 py-3 border rounded-[20px] text-sm text-black focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.dateOfBirth ? 'border-red-400' : 'border-gray-300'}`}
                   />
                   {detailsErrors.dateOfBirth && (
                     <p className="text-xs text-red-500 mt-1">{detailsErrors.dateOfBirth}</p>
@@ -604,7 +620,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-4 rounded-full font-semibold transition flex items-center justify-center gap-2 ${
+                className={`w-full py-2.5 px-6 rounded-full font-semibold transition-all duration-[250ms] ease cursor-pointer flex items-center justify-center gap-2 ${
                   !loading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
@@ -656,7 +672,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
               <button
                 type="submit"
                 disabled={emailOtp.join('').length !== 6 || loading}
-                className={`w-full mt-6 py-4 rounded-full font-semibold transition flex items-center justify-center gap-2 ${
+                className={`w-full mt-6 py-2.5 px-6 rounded-full font-semibold transition-all duration-[250ms] ease cursor-pointer flex items-center justify-center gap-2 ${
                   emailOtp.join('').length === 6 && !loading
                     ? 'bg-black text-white hover:bg-gray-800'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
