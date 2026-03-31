@@ -1,0 +1,56 @@
+
+services:
+  # ── PostgreSQL Database ────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: shoes_postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "${DB_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - shoes_network
+
+  # ── Redis Cache ────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: shoes_redis
+    restart: unless-stopped
+    env_file: .env
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT}:6379"
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli -a "$REDIS_PASSWORD" ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - shoes_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  shoes_network:
+    driver: bridge
