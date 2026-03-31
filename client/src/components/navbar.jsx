@@ -68,25 +68,78 @@ export default function Navbar() {
     <>
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-neutral-200 shadow-[0_4px_6px_rgba(0,0,0,0.05),0_20px_40px_rgba(0,0,0,0.06)]">
       <nav
-        className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
+        className="mx-auto flex h-16 sm:h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
         aria-label="Primary"
       >
       <Link
         href="/"
         aria-label="Classic Shoes Home"
-        className="flex items-center gap-3 group"
+        className="hidden md:flex items-center gap-3 group"
       >
         <img
           src="logo.png"
           alt="Classic Shoes"
-          className="h-24 w-auto object-contain"
+          className="h-11 sm:h-14 w-auto object-contain"
         />
         <span className="hidden sm:block text-xl font-extrabold text-neutral-900 tracking-tight">
           Sprint<span className="text-amber-500">Shoes</span>
         </span>
       </Link>
 
-        <ul className="hidden items-center gap-8 md:flex">
+      <div className="md:hidden flex items-center gap-3">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="p-1.5 rounded-md hover:bg-neutral-100 transition-colors"
+          aria-label="Toggle menu"
+        >
+          {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+        <button
+          onClick={() => navigate('/products')}
+          className="p-1.5 rounded-md hover:bg-neutral-100 transition-colors"
+          aria-label="Search"
+        >
+          <Search className="w-5 h-5 text-neutral-800" />
+        </button>
+      </div>
+
+      <Link
+        href="/"
+        aria-label="Sprint Shoes Home"
+        className="md:hidden absolute left-1/2 -translate-x-1/2 text-[20px] font-black tracking-tight text-neutral-900 leading-none"
+      >
+        <span className="text-[20px] font-black tracking-tight uppercase">SprintShoes</span>
+      </Link>
+
+      <div className="md:hidden flex items-center gap-2">
+        <button
+          aria-label="Account"
+          onClick={() => {
+            if (!isLoggedIn) {
+              setLoginModalOpen(true);
+              return;
+            }
+            navigate('/profile');
+          }}
+          className="p-1.5 rounded-md hover:bg-neutral-100 transition-colors"
+        >
+          <User className="w-5 h-5 text-neutral-800" />
+        </button>
+        <button
+          aria-label="Shopping Cart"
+          onClick={() => navigate('/cart')}
+          className="relative p-1.5 rounded-md hover:bg-neutral-100 transition-colors"
+        >
+          <ShoppingBag className="w-5 h-5 text-neutral-800" />
+          {cartCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-neutral-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              {cartCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+        <ul className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((l) => (
             <li key={l.href}>
               <Link
@@ -234,20 +287,6 @@ export default function Navbar() {
           </button>
         </div>
 
-        <button
-          type="button"
-           className="inline-flex items-center justify-center p-2 rounded-[20px] hover:bg-neutral-100 md:hidden transition-all duration-[250ms] ease cursor-pointer"
-          aria-controls="mobile-menu"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <span className="sr-only">Toggle navigation</span>
-          {open ? (
-            <X className="h-6 w-6 text-neutral-700" />
-          ) : (
-            <Menu className="h-6 w-6 text-neutral-700" />
-          )}
-        </button>
       </nav>
 
       {/* Mobile menu */}
@@ -273,19 +312,58 @@ export default function Navbar() {
               </Link>
             </li>
           ))}
-          <li className="flex items-center gap-3 pt-2">
-            <input
-              type="text"
-              placeholder="Search"
-               className="flex-1 rounded-full bg-neutral-100 px-4 py-2 text-[13px] font-medium placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-amber-400/60 focus:bg-neutral-200 transition-all duration-[250ms] ease"
-            />
-            <button aria-label="Favorites">
-              <User className="h-6 w-6" />
-            </button>
+          <li className="pt-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                  navigate("/products", { search: searchQuery.trim() });
+                  setSearchQuery("");
+                  setOpen(false);
+                }
+              }}
+              className="mb-3"
+            >
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-full bg-neutral-100 px-4 py-2.5 text-[13px] font-medium placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-amber-400/60 focus:bg-neutral-200 transition-all duration-[250ms] ease"
+              />
+            </form>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <button
+                aria-label="Wishlist"
+                onClick={() => {
+                  setOpen(false);
+                  navigate('/wishlist');
+                }}
+                className="inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-neutral-200 text-neutral-700 rounded-[20px] font-medium hover:bg-neutral-100 transition-all duration-[250ms] ease cursor-pointer"
+              >
+                <Heart className="h-4 w-4" />
+                Wishlist
+              </button>
+              <button
+                aria-label="Account"
+                onClick={() => {
+                  setOpen(false);
+                  if (!isLoggedIn) {
+                    setLoginModalOpen(true);
+                  } else {
+                    navigate('/profile');
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-neutral-200 text-neutral-700 rounded-[20px] font-medium hover:bg-neutral-100 transition-all duration-[250ms] ease cursor-pointer"
+              >
+                <User className="h-4 w-4" />
+                Account
+              </button>
+            </div>
             <button
               aria-label="Shopping Cart"
               onClick={() => { setOpen(false); navigate('/cart'); }}
-               className="flex-1 flex items-center justify-center gap-2 py-2.5 px-6 bg-yellow-400 text-neutral-900 rounded-[20px] font-medium hover:bg-yellow-500 transition-all duration-[250ms] ease cursor-pointer"
+               className="w-full flex items-center justify-center gap-2 py-2.5 px-6 bg-yellow-400 text-neutral-900 rounded-[20px] font-medium hover:bg-yellow-500 transition-all duration-[250ms] ease cursor-pointer"
             >
               <ShoppingBag className="h-5 w-5" />
               Cart ({cartCount})
