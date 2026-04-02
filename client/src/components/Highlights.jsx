@@ -67,7 +67,7 @@ const Highlights = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button className="
+            <motion.button className="
               link
               group
               inline-flex items-center gap-2
@@ -84,7 +84,7 @@ const Highlights = () => {
               Watch Collection
             </motion.button>
 
-            <button className="
+            <motion.button className="
               link
               group
               inline-flex items-center gap-2
@@ -100,7 +100,7 @@ const Highlights = () => {
               Shop Now
               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </motion.button>
-          </motion.div>
+          </div>
         </motion.div>
 
         <VideoCarousel />
