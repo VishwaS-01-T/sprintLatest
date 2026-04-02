@@ -3,8 +3,8 @@ import { Link } from "../hooks/useRouter.jsx";
 import { motion } from "framer-motion";
 import { cn } from "../lib/utils.js";
 
-// Animated elegant shape component for background
-function ElegantShape({
+// Animated elegant shape component for background - optimized with React.memo
+const ElegantShape = React.memo(function ElegantShape({
   className,
   delay = 0,
   width = 400,
@@ -61,7 +61,16 @@ function ElegantShape({
       </motion.div>
     </motion.div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Only re-render if essential props change
+  return (
+    prevProps.delay === nextProps.delay &&
+    prevProps.width === nextProps.width &&
+    prevProps.height === nextProps.height &&
+    prevProps.rotate === nextProps.rotate &&
+    prevProps.gradient === nextProps.gradient
+  );
+});
 
 const Hero = () => {
   const fadeUpVariants = {
@@ -149,7 +158,7 @@ const Hero = () => {
               <p className="text-sm font-light text-neutral-400 tracking-widest mb-3 italic">
                 Embracing Excellence
               </p>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight uppercase">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight tracking-tight uppercase">
                 MODEL-X SHOENAME?
               </h1>
             </motion.div>
@@ -189,7 +198,9 @@ const Hero = () => {
               <img
                 src="/assets/shoes/shoe-10.png"
                 alt="X Lows Armstrong Shoe"
-                className="relative z-10 w-full max-w-xl h-auto object-contain drop-shadow-2xl"
+                className="relative z-10 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl h-auto object-contain drop-shadow-2xl"
+                loading="lazy"
+                sizes="(max-width: 640px) 80vw, (max-width: 768px) 60vw, (max-width: 1024px) 50vw, 600px"
               />
             </div>
           </motion.div>

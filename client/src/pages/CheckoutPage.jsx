@@ -6,7 +6,9 @@ import { ordersApi } from "../lib/api/ordersApi";
 import { addressesApi } from "../lib/api/addressesApi";
 import { paymentMethodsApi } from "../lib/api/paymentMethodsApi";
 import useCartStore from "../store/cartStore";
-import { useToast } from "../hooks/useToast";
+import showToast from "../utils/toast";
+import { RazorpayCheckout } from "../components/RazorpayCheckout";
+import { CheckoutSkeleton } from "../components/skeletons/CheckoutSkeleton";
 
 const PAYMENT_OPTIONS = [
   { id: "CREDIT_CARD", label: "Credit Card", icon: CreditCard },
@@ -17,6 +19,7 @@ const PAYMENT_OPTIONS = [
 const CheckoutPage = () => {
   const { navigate, getParam } = useRouter();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const userData = useAuthStore((s) => s.userData);
   const [addresses, setAddresses] = useState([]);
   const [savedPayments, setSavedPayments] = useState([]);
   const [shippingAddressId, setShippingAddressId] = useState(getParam("shippingAddressId") || "");
@@ -25,9 +28,12 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
   const [summary, setSummary] = useState(null);
-  const cartSummary = useCartStore((s) => s.getCartSummary());
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [orderData, setOrderData] = useState(null);
+  const getCartSummary = useCartStore((s) => s.getCartSummary);
+  const cartSummary = getCartSummary();
   const fetchServerCart = useCartStore((s) => s.fetchServerCart);
-  const { error: showError, success: showSuccess, info: showInfo } = useToast();
+  const clearCart = useCartStore((s) => s.clearCart);
 
   const selectedAddress = useMemo(
     () => addresses.find((address) => address.id === shippingAddressId) || null,
@@ -36,7 +42,7 @@ const CheckoutPage = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      showInfo("Please login to continue checkout.");
+      showToast.info("Please login to continue checkout.");
       navigate("/cart");
       return;
     }
@@ -80,7 +86,7 @@ const CheckoutPage = () => {
         }
       })
       .catch(() => {
-        if (active) showError("Failed to initialize checkout");
+        if (active) showToast.error("Failed to initialize checkout");
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -89,11 +95,11 @@ const CheckoutPage = () => {
     return () => {
       active = false;
     };
-  }, [isLoggedIn, navigate, showError, showInfo, shippingAddressId, billingAddressId, fetchServerCart]);
+  }, [isLoggedIn, navigate, shippingAddressId, billingAddressId, fetchServerCart]);
 
   const handlePlaceOrder = async () => {
     if (!shippingAddressId) {
-      showError("Please select a shipping address.");
+      showToast.error("Please select a shipping address.");
       return;
     }
 
@@ -105,18 +111,44 @@ const CheckoutPage = () => {
         addressId: shippingAddressId,
       });
       const order = created.data?.order;
+      const paymentId = created.data?.paymentId;
       if (!order?.id) throw new Error("Unable to create order");
+      if (!paymentId) throw new Error("Unable to create payment session");
 
-      await ordersApi.processPayment(order.id, { paymentMethod });
-
-      showSuccess("Order placed successfully");
-      navigate(`/orders/${order.id}`);
+      // Store order data and show payment modal
+      setOrderData({
+        orderId: order.id,
+        id: order.id,
+        paymentId: paymentId,
+        totalAmount: order.totalAmount || cartSummary.total,
+        total: order.totalAmount || cartSummary.total,
+      });
+      setShowPaymentModal(true);
     } catch (err) {
-      showError(err.message || "Checkout failed");
+      showToast.error(err.message || "Checkout failed");
     } finally {
       setPlacing(false);
     }
   };
+
+  const handlePaymentSuccess = (response) => {
+    setShowPaymentModal(false);
+    clearCart(); // Clear local cart after successful payment
+    showToast.success("Payment successful! Order placed.");
+    navigate(`/orders/${orderData.orderId}`);
+  };
+
+  const handlePaymentFailed = () => {
+    setShowPaymentModal(false);
+    showToast.error("Payment failed. Please try again.");
+  };
+
+  // Get user info for Razorpay prefill
+  const userInfo = useMemo(() => ({
+    name: userData ? `${userData.firstName || ''} ${userData.lastName || ''}`.trim() : '',
+    email: userData?.email || '',
+    phone: userData?.phoneNumber || '',
+  }), [userData]);
 
   return (
     <div className="min-h-screen bg-neutral-50 py-10">
@@ -124,7 +156,7 @@ const CheckoutPage = () => {
         <h1 className="text-3xl font-bold text-neutral-900 mb-8">Checkout</h1>
 
         {loading ? (
-          <div className="bg-white p-6 rounded-xl text-neutral-500">Loading checkout details...</div>
+          <CheckoutSkeleton />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
@@ -168,7 +200,7 @@ const CheckoutPage = () => {
                       <p className="text-sm text-neutral-600">
                         {address.city}, {address.state} - {address.postalCode}
                       </p>
-                      <p className="text-sm text-neutral-500">{address.phoneNumber}</p>
+                      <p className="text-sm text-neutral-500">{address.phone}</p>
                     </label>
                   ))}
                 </div>
@@ -242,6 +274,16 @@ const CheckoutPage = () => {
             </aside>
           </div>
         )}
+
+        {/* Razorpay Payment Checkout */}
+        <RazorpayCheckout
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          order={orderData}
+          onSuccess={handlePaymentSuccess}
+          onFailed={handlePaymentFailed}
+          userInfo={userInfo}
+        />
       </div>
     </div>
   );

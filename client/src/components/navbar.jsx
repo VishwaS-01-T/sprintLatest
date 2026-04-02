@@ -116,7 +116,7 @@ export default function Navbar() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-40 lg:w-52 rounded-full bg-neutral-100 py-2.5 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:bg-white transition-all"
+              className="w-48 lg:w-64 xl:w-72 rounded-full bg-neutral-100 py-2.5 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:bg-white transition-all"
             />
           </form>
 
@@ -274,12 +274,19 @@ export default function Navbar() {
             </li>
           ))}
           <li className="flex items-center gap-3 pt-2">
-            <input
-              type="text"
-              placeholder="Search"
-              className="flex-1 rounded-full bg-gray-100 px-4 py-2 text-[13px] font-medium placeholder:text-gray-500 focus:outline-none focus:bg-gray-200"
-            />
-            <button aria-label="Favorites">
+            <form onSubmit={handleSearch} className="flex-1">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-full bg-gray-100 px-4 py-2 text-[13px] font-medium placeholder:text-gray-500 focus:outline-none focus:bg-gray-200"
+              />
+            </form>
+            <button 
+              aria-label="Favorites"
+              onClick={() => { setOpen(false); navigate('/wishlist'); }}
+            >
               <User className="h-6 w-6" />
             </button>
             <button

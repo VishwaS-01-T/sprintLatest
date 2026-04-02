@@ -3,18 +3,19 @@ import { Package } from "lucide-react";
 import { Link, useRouter } from "../hooks/useRouter.jsx";
 import useAuthStore from "../store/authStore";
 import { ordersApi } from "../lib/api/ordersApi";
-import { useToast } from "../hooks/useToast";
+import showToast from "../utils/toast";
+import { OrdersListSkeleton } from "../components/skeletons/OrderCardSkeleton";
+import { EmptyState } from "../components/EmptyState";
 
 const OrdersPage = () => {
   const { navigate } = useRouter();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { info: showInfo, error: showError } = useToast();
 
   useEffect(() => {
     if (!isLoggedIn) {
-      showInfo("Please login to view orders.");
+      showToast.info("Please login to view orders.");
       navigate("/products");
       return;
     }
@@ -26,7 +27,7 @@ const OrdersPage = () => {
         if (active) setOrders(res.data?.orders || []);
       })
       .catch((err) => {
-        if (active) showError(err.message || "Failed to fetch orders");
+        if (active) showToast.error(err.message || "Failed to fetch orders");
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -35,23 +36,29 @@ const OrdersPage = () => {
     return () => {
       active = false;
     };
-  }, [isLoggedIn, navigate, showError, showInfo]);
+  }, [isLoggedIn, navigate]);
 
   return (
     <div className="min-h-screen bg-neutral-50 py-10">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-neutral-900 mb-8">My Orders</h1>
 
-        {loading && <div className="bg-white rounded-xl p-6 text-neutral-500">Loading orders...</div>}
+        {loading && <OrdersListSkeleton count={3} />}
 
         {!loading && orders.length === 0 && (
-          <div className="bg-white rounded-xl p-10 text-center">
-            <Package className="w-10 h-10 text-neutral-300 mx-auto mb-4" />
-            <p className="text-neutral-600 mb-4">No orders yet.</p>
-            <Link href="/products" className="px-5 py-3 rounded-full bg-neutral-900 text-white font-semibold">
-              Start Shopping
-            </Link>
-          </div>
+          <EmptyState
+            icon={Package}
+            title="No orders yet"
+            description="You haven't placed any orders. Start shopping to see your orders here."
+            action={
+              <Link
+                href="/products"
+                className="inline-block px-6 py-3 rounded-full bg-neutral-900 text-white font-semibold hover:bg-neutral-800 transition-colors"
+              >
+                Start Shopping
+              </Link>
+            }
+          />
         )}
 
         {!loading && orders.length > 0 && (

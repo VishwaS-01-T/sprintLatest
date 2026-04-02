@@ -1,7 +1,21 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+// Throttle function for performance
+const throttle = (func, limit) => {
+  let inThrottle;
+  return function() {
+    const args = arguments;
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+};
 
 const ScrollExpandMedia = ({
   mediaType = "video",
@@ -23,29 +37,44 @@ const ScrollExpandMedia = ({
     return window.innerWidth < 768;
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!wrapperRef.current) return;
-      const rect = wrapperRef.current.getBoundingClientRect();
-      const wrapperHeight = wrapperRef.current.offsetHeight;
-      const viewportHeight = window.innerHeight;
-      // scrolled = how far into the wrapper we are (0 at top, positive as we scroll down)
-      const scrolled = -rect.top;
-      const scrollable = wrapperHeight - viewportHeight;
-      if (scrollable <= 0) return;
-      const progress = clamp(scrolled / scrollable, 0, 1);
-      setScrollProgress(progress);
-      setShowContent(progress >= 0.75);
-    };
+  // Memoize scroll calculations for better performance
+  const mediaStyles = useMemo(() => ({
+    width: 320 + scrollProgress * (isMobile ? 660 : 980),
+    height: 380 + scrollProgress * (isMobile ? 220 : 260),
+  }), [scrollProgress, isMobile]);
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+  const textTranslateX = useMemo(() => 
+    scrollProgress * (isMobile ? 80 : 50), 
+    [scrollProgress, isMobile]
+  );
+
+  const handleScroll = useCallback(() => {
+    if (!wrapperRef.current) return;
+    const rect = wrapperRef.current.getBoundingClientRect();
+    const wrapperHeight = wrapperRef.current.offsetHeight;
+    const viewportHeight = window.innerHeight;
+    // scrolled = how far into the wrapper we are (0 at top, positive as we scroll down)
+    const scrolled = -rect.top;
+    const scrollable = wrapperHeight - viewportHeight;
+    if (scrollable <= 0) return;
+    const progress = clamp(scrolled / scrollable, 0, 1);
+    setScrollProgress(progress);
+    setShowContent(progress >= 0.75);
   }, []);
 
-  const mediaWidth = 320 + scrollProgress * (isMobile ? 660 : 980);
-  const mediaHeight = 380 + scrollProgress * (isMobile ? 220 : 260);
-  const textTranslateX = scrollProgress * (isMobile ? 80 : 50);
+  // Throttled scroll handler for performance
+  const throttledHandleScroll = useMemo(
+    () => throttle(handleScroll, 16), // ~60fps
+    [handleScroll]
+  );
+
+  useEffect(() => {
+    window.addEventListener("scroll", throttledHandleScroll, { passive: true });
+    handleScroll(); // Initial call
+    return () => {
+      window.removeEventListener("scroll", throttledHandleScroll);
+    };
+  }, [throttledHandleScroll, handleScroll]);
 
   const firstWord = title ? title.split(" ")[0] : "";
   const restOfTitle = title ? title.split(" ").slice(1).join(" ") : "";
@@ -78,8 +107,8 @@ const ScrollExpandMedia = ({
             <div
               className="absolute z-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl overflow-hidden"
               style={{
-                width: `${mediaWidth}px`,
-                height: `${mediaHeight}px`,
+                width: `${mediaStyles.width}px`,
+                height: `${mediaStyles.height}px`,
                 maxWidth: "95vw",
                 maxHeight: "85vh",
                 boxShadow: "0px 20px 50px rgba(0, 0, 0, 0.35)",

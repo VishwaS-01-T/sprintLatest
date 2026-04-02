@@ -8,7 +8,7 @@ import { useToast } from "../hooks/useToast";
 
 const EMPTY_FORM = {
   fullName: "",
-  phoneNumber: "",
+  phone: "",
   addressLine1: "",
   addressLine2: "",
   city: "",
@@ -23,7 +23,7 @@ const EMPTY_FORM = {
 const normalizeAddress = (address) => ({
   id: address.id,
   fullName: address.fullName || "",
-  phoneNumber: (address.phoneNumber || "").replace(/^\+91/, ""),
+  phone: (address.phone || "").replace(/^\+91/, ""),
   addressLine1: address.addressLine1 || "",
   addressLine2: address.addressLine2 || "",
   city: address.city || "",
@@ -47,7 +47,7 @@ const AddressFormModal = ({ onClose, onSave, initial }) => {
   const validate = () => {
     const nextErrors = {};
     if (!form.fullName.trim()) nextErrors.fullName = "Required";
-    if (!/^\d{10}$/.test(form.phoneNumber)) nextErrors.phoneNumber = "Enter valid 10-digit number";
+    if (!/^\d{10}$/.test(form.phone)) nextErrors.phone = "Enter valid 10-digit number";
     if (!form.addressLine1.trim()) nextErrors.addressLine1 = "Required";
     if (!form.city.trim()) nextErrors.city = "Required";
     if (!form.state.trim()) nextErrors.state = "Required";
@@ -64,7 +64,7 @@ const AddressFormModal = ({ onClose, onSave, initial }) => {
 
     onSave({
       ...form,
-      phoneNumber: `+91${form.phoneNumber}`,
+      phone: `+91${form.phone}`,
     });
   };
 
@@ -82,7 +82,7 @@ const AddressFormModal = ({ onClose, onSave, initial }) => {
         <div className="px-6 py-5 space-y-4">
           {[
             { key: "fullName", label: "Full Name", placeholder: "John Doe" },
-            { key: "phoneNumber", label: "Phone", placeholder: "10-digit number" },
+            { key: "phone", label: "Phone", placeholder: "10-digit number" },
             { key: "postalCode", label: "Pin Code", placeholder: "6-digit pin code" },
             { key: "city", label: "City", placeholder: "Mumbai" },
             { key: "state", label: "State", placeholder: "Maharashtra" },
@@ -145,7 +145,8 @@ const AddressPage = () => {
   const [loading, setLoading] = useState(true);
   const { success: showSuccess, error: showError, info: showInfo } = useToast();
 
-  const cartSummary = useCartStore((s) => s.getCartSummary());
+  const getCartSummary = useCartStore((s) => s.getCartSummary);
+  const cartSummary = getCartSummary();
 
   const selectedAddress = useMemo(
     () => addresses.find((address) => address.id === selectedId) || null,
@@ -263,7 +264,7 @@ const AddressPage = () => {
                   <p className="text-sm text-neutral-600">
                     {address.city}, {address.state} - {address.postalCode}
                   </p>
-                  <p className="text-sm text-neutral-500 mt-0.5">+91 {address.phoneNumber}</p>
+                  <p className="text-sm text-neutral-500 mt-0.5">+91 {address.phone}</p>
 
                   <div className="flex items-center gap-3 mt-4 pt-4 border-t border-neutral-100">
                     <button

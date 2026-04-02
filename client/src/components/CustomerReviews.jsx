@@ -1,15 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Star, BadgeCheck } from "lucide-react";
-import gsap from "gsap";
 
-/**
- * CustomerReviews Component
- * Carousel displaying customer testimonials with images
- */
 const CustomerReviews = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const cardRef = useRef(null);
+  const [direction, setDirection] = useState(0);
 
   const reviews = [
     {
@@ -44,138 +39,202 @@ const CustomerReviews = () => {
     },
   ];
 
-  const nextReview = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    
-    gsap.to(cardRef.current, {
-      x: "-100%",
+  const nextReview = useCallback(() => {
+    setDirection(1);
+    setCurrentIndex((prev) => (prev + 1) % reviews.length);
+  }, [reviews.length]);
+
+  const prevReview = useCallback(() => {
+    setDirection(-1);
+    setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
+  }, [reviews.length]);
+
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 300 : -300,
       opacity: 0,
-      duration: 0.4,
-      ease: "power2.in",
-      onComplete: () => {
-        setCurrentIndex((prev) => (prev + 1) % reviews.length);
-        gsap.fromTo(cardRef.current,
-          { x: "100%", opacity: 0 },
-          { 
-            x: "0%", 
-            opacity: 1, 
-            duration: 0.4, 
-            ease: "power2.out",
-            onComplete: () => setIsAnimating(false)
-          }
-        );
-      }
-    });
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? 300 : -300,
+      opacity: 0,
+    }),
   };
 
-  const prevReview = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    
-    gsap.to(cardRef.current, {
-      x: "100%",
-      opacity: 0,
-      duration: 0.4,
-      ease: "power2.in",
-      onComplete: () => {
-        setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
-        gsap.fromTo(cardRef.current,
-          { x: "-100%", opacity: 0 },
-          { 
-            x: "0%", 
-            opacity: 1, 
-            duration: 0.4, 
-            ease: "power2.out",
-            onComplete: () => setIsAnimating(false)
-          }
-        );
-      }
-    });
+  const swipeConfidenceThreshold = 10000;
+  const swipePower = (offset, velocity) => {
+    return Math.abs(offset) * velocity;
   };
-
-  const currentReview = reviews[currentIndex];
 
   return (
     <section className="py-16 sm:py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <h2 className="text-3xl sm:text-4xl font-bold text-neutral-900 mb-12 uppercase tracking-tight">
+        <motion.h2 
+          className="text-3xl sm:text-4xl font-bold text-neutral-900 mb-12 uppercase tracking-tight"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           What're they saying?
-        </h2>
+        </motion.h2>
 
         {/* Reviews Carousel */}
         <div className="relative overflow-hidden">
-          <div className="flex items-stretch">
-            {/* Main Review Card */}
-            <div 
-              ref={cardRef}
-              className="w-full border-2 border-blue-600 rounded-lg overflow-hidden"
+          <AnimatePresence initial={false} custom={direction} mode="wait">
+            <motion.div
+              key={currentIndex}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 },
+              }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={1}
+              onDragEnd={(e, { offset, velocity }) => {
+                const swipe = swipePower(offset.x, velocity.x);
+
+                if (swipe < -swipeConfidenceThreshold) {
+                  nextReview();
+                } else if (swipe > swipeConfidenceThreshold) {
+                  prevReview();
+                }
+              }}
+              className="w-full border-2 border-blue-600 rounded-lg overflow-hidden cursor-grab active:cursor-grabbing"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
                 {/* Image */}
                 <div className="relative h-64 md:h-auto">
                   <img
-                    src={currentReview.image}
-                    alt={`Review by ${currentReview.name}`}
+                    src={reviews[currentIndex].image}
+                    alt={`Review by ${reviews[currentIndex].name}`}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
 
                 {/* Content */}
                 <div className="flex flex-col justify-center p-8 md:p-12 bg-white">
                   {/* Stars */}
-                  <div className="flex gap-1 mb-6">
-                    {[...Array(currentReview.rating)].map((_, i) => (
-                      <Star
+                  <motion.div 
+                    className="flex gap-1 mb-6"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                  >
+                    {[...Array(reviews[currentIndex].rating)].map((_, i) => (
+                      <motion.div
                         key={i}
-                        className="w-5 h-5 fill-neutral-900 text-neutral-900"
-                      />
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1 + i * 0.05, duration: 0.2 }}
+                      >
+                        <Star className="w-5 h-5 fill-neutral-900 text-neutral-900" />
+                      </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
 
                   {/* Title */}
-                  <h3 className="text-xl sm:text-2xl font-bold text-neutral-900 uppercase mb-4">
-                    "{currentReview.title}"
-                  </h3>
+                  <motion.h3 
+                    className="text-xl sm:text-2xl font-bold text-neutral-900 uppercase mb-4"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                  >
+                    "{reviews[currentIndex].title}"
+                  </motion.h3>
 
                   {/* Review Text */}
-                  <p className="text-neutral-600 leading-relaxed mb-6">
-                    {currentReview.review}
-                  </p>
+                  <motion.p 
+                    className="text-neutral-600 leading-relaxed mb-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.4 }}
+                  >
+                    {reviews[currentIndex].review}
+                  </motion.p>
 
                   {/* Author */}
-                  <div className="flex items-center gap-2 mb-8">
+                  <motion.div 
+                    className="flex items-center gap-2 mb-8"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5, duration: 0.4 }}
+                  >
                     <span className="font-semibold text-neutral-900 uppercase tracking-wide">
-                      {currentReview.name}
+                      {reviews[currentIndex].name}
                     </span>
-                    {currentReview.verified && (
+                    {reviews[currentIndex].verified && (
                       <BadgeCheck className="w-5 h-5 text-blue-600" />
                     )}
-                  </div>
+                  </motion.div>
 
                   {/* Navigation */}
-                  <div className="flex gap-3">
-                    <button
+                  <motion.div 
+                    className="flex gap-3"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.4 }}
+                  >
+                    <motion.button
                       onClick={prevReview}
                       className="w-10 h-10 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100 transition-colors"
                       aria-label="Previous review"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <ChevronLeft className="w-5 h-5 text-neutral-600" />
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       onClick={nextReview}
                       className="w-10 h-10 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100 transition-colors"
                       aria-label="Next review"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <ChevronRight className="w-5 h-5 text-neutral-600" />
-                    </button>
-                  </div>
+                    </motion.button>
+                  </motion.div>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
+
+        {/* Indicators */}
+        <motion.div 
+          className="flex justify-center gap-2 mt-8"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.7, duration: 0.4 }}
+        >
+          {reviews.map((_, index) => (
+            <motion.button
+              key={index}
+              onClick={() => {
+                setDirection(index > currentIndex ? 1 : -1);
+                setCurrentIndex(index);
+              }}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                index === currentIndex ? 'bg-blue-600' : 'bg-neutral-300 hover:bg-neutral-400'
+              }`}
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+            />
+          ))}
+        </motion.div>
       </div>
     </section>
   );

@@ -394,10 +394,10 @@ export const createCheckoutOrder = async (
     landmark: address.landmark,
   });
 
-  // 7. Create order in transaction
-  const order = await prisma.$transaction(async (tx) => {
+  // 7. Create order and payment in transaction
+  const { order: newOrder, payment } = await prisma.$transaction(async (tx) => {
     // Create order
-    const newOrder = await tx.order.create({
+    const createdOrder = await tx.order.create({
       data: {
         orderNumber: generateOrderNumber(),
         customerId: userId,
@@ -413,7 +413,7 @@ export const createCheckoutOrder = async (
     for (const item of cart.items) {
       await tx.orderItem.create({
         data: {
-          orderId: newOrder.id,
+          orderId: createdOrder.id,
           productId: item.productId,
           variantId: item.variantId,
           productNameSnapshot: item.product.name,
@@ -429,7 +429,7 @@ export const createCheckoutOrder = async (
     // Create order address
     await tx.orderAddress.create({
       data: {
-        orderId: newOrder.id,
+        orderId: createdOrder.id,
         shippingAddress: addressSnapshot,
         billingAddress: addressSnapshot,
       },
@@ -443,6 +443,18 @@ export const createCheckoutOrder = async (
       });
     }
 
+    // Create pending payment record for Razorpay
+    const createdPayment = await tx.payment.create({
+      data: {
+        orderId: createdOrder.id,
+        paymentMethod: "UPI", // Default, will be updated when user selects method
+        paymentProvider: "RAZORPAY",
+        amount: totalAmount,
+        currency: "INR",
+        paymentStatus: "PENDING",
+      },
+    });
+
     // Clear cart
     await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
     await tx.cart.update({
@@ -455,10 +467,11 @@ export const createCheckoutOrder = async (
       },
     });
 
-    return newOrder;
+    return { order: createdOrder, payment: createdPayment };
   });
 
-  return await orderRepository.findById(order.id);
+  const fullOrder = await orderRepository.findById(newOrder.id);
+  return { order: fullOrder, paymentId: payment.id };
 };
 
 /**

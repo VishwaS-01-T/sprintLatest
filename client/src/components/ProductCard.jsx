@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Link } from "../hooks/useRouter.jsx";
 import { Heart } from "lucide-react";
 
@@ -6,8 +6,10 @@ import { Heart } from "lucide-react";
  * ProductCard Component
  * Displays a single product in a grid/list view
  * Props are structured for easy backend integration
+ * 
+ * Optimized with React.memo to prevent unnecessary re-renders
  */
-const ProductCard = ({
+const ProductCard = React.memo(({
   id,
   slug,
   name,
@@ -19,14 +21,20 @@ const ProductCard = ({
   className = "",
   index = 0,
 }) => {
-  const [isFavorite, setIsFavorite] = React.useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
 
-  const handleFavoriteClick = (e) => {
+  const handleFavoriteClick = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorite(!isFavorite);
+    setIsFavorite(prev => !prev);
     // TODO: Integrate with backend favorites API
-  };
+  }, []);
+
+  // Memoize animation style to prevent re-creation
+  const animationStyle = useMemo(() => ({
+    animationDelay: `${index * 100}ms`,
+    animationFillMode: "backwards",
+  }), [index]);
 
   const productPath = `/product/${slug || id}`;
 
@@ -34,10 +42,7 @@ const ProductCard = ({
     <Link href={productPath} className="block group">
       <article
         className={`relative rounded-3xl bg-white border border-neutral-200/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden animate-fade-in ${className}`}
-        style={{
-          animationDelay: `${index * 100}ms`,
-          animationFillMode: "backwards",
-        }}
+        style={animationStyle}
       >
         {/* Image Container */}
         <div className="relative aspect-square overflow-hidden bg-neutral-100">
@@ -50,7 +55,7 @@ const ProductCard = ({
           {/* Favorite Button */}
           <button
             onClick={handleFavoriteClick}
-            className={`absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm border border-neutral-200/80 shadow-sm transition-all duration-200 hover:scale-105 ${
+            className={`absolute top-3 right-3 p-3 min-w-[44px] min-h-[44px] rounded-full bg-white/90 backdrop-blur-sm border border-neutral-200/80 shadow-sm transition-all duration-200 hover:scale-105 flex items-center justify-center ${
               isFavorite ? "opacity-100" : "opacity-80 group-hover:opacity-100"
             }`}
             aria-label={
@@ -58,7 +63,7 @@ const ProductCard = ({
             }
           >
             <Heart
-              className={`h-4.5 w-4.5 transition-all duration-200 ${
+              className={`h-5 w-5 transition-all duration-200 ${
                 isFavorite
                   ? "fill-rose-500 text-rose-500"
                   : "text-neutral-500 hover:text-rose-500"
@@ -104,6 +109,16 @@ const ProductCard = ({
       </article>
     </Link>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function to prevent unnecessary re-renders
+  return (
+    prevProps.id === nextProps.id &&
+    prevProps.price === nextProps.price &&
+    prevProps.inStock === nextProps.inStock &&
+    prevProps.index === nextProps.index
+  );
+});
+
+ProductCard.displayName = 'ProductCard';
 
 export default ProductCard;

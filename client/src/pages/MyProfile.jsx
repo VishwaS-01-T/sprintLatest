@@ -3,6 +3,7 @@ import { useRouter } from '../hooks/useRouter.jsx';
 import useAuthStore from '../store/authStore';
 import ProfileCard from '../components/ProfileCard';
 import { userAuth } from '../lib/api';
+import showToast from '../utils/toast';
 import {
   User,
   Phone,
@@ -57,10 +58,11 @@ const MyProfile = () => {
         setFirstName(u.firstName || '');
         setLastName(u.lastName || '');
       })
-      .catch(() => {
+      .catch((err) => {
         // Fallback to store data
         setFirstName(storeUser?.firstName || '');
         setLastName(storeUser?.lastName || '');
+        showToast.error(err.message || 'Failed to load profile');
       })
       .finally(() => setProfileLoading(false));
   }, [isLoggedIn, accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -92,8 +94,11 @@ const MyProfile = () => {
       setUser(updated);
       updateProfile({ firstName: updated.firstName, lastName: updated.lastName });
       setEditingPersonal(false);
+      showToast.success('Profile updated successfully!');
     } catch (err) {
-      setSaveError(err.message || 'Failed to save. Please try again.');
+      const errorMsg = err.message || 'Failed to save. Please try again.';
+      setSaveError(errorMsg);
+      showToast.error(errorMsg);
     } finally {
       setSaveLoading(false);
     }

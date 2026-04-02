@@ -206,11 +206,11 @@ export const createCheckoutOrder = async (
 ): Promise<void> => {
   try {
     const data = createOrderSchema.parse(req.body);
-    const order = await svc.createCheckoutOrder(req.user!.id, data);
+    const { order, paymentId } = await svc.createCheckoutOrder(req.user!.id, data);
     res.status(201).json({
       success: true,
       message: "Order created successfully",
-      data: { order },
+      data: { order, paymentId },
     });
   } catch (e) {
     next(e);

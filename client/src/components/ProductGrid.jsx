@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useMemo } from "react";
 import ProductCard from "./ProductCard";
 import { Package, AlertTriangle, RefreshCw } from "lucide-react";
 
 /**
  * ProductGrid Component
  * Renders a grid of products with loading and empty states
+ * Optimized with React.memo and useMemo for better performance
  */
-const ProductGrid = ({
+const ProductGrid = React.memo(({
   products = [],
   loading = false,
   error = null,
@@ -15,11 +16,14 @@ const ProductGrid = ({
   className = "",
   onRetry,
 }) => {
+  // Memoize the skeleton array creation
+  const skeletonItems = useMemo(() => [...Array(8)], []);
+
   // Loading skeleton
   if (loading) {
     return (
       <div className={`grid gap-6 ${getGridCols(columns)} ${className}`}>
-        {[...Array(8)].map((_, i) => (
+        {skeletonItems.map((_, i) => (
           <ProductCardSkeleton key={i} index={i} />
         ))}
       </div>
@@ -75,7 +79,22 @@ const ProductGrid = ({
       ))}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent unnecessary re-renders
+  return (
+    prevProps.loading === nextProps.loading &&
+    prevProps.error === nextProps.error &&
+    prevProps.columns === nextProps.columns &&
+    prevProps.products.length === nextProps.products.length &&
+    prevProps.products.every((product, index) => 
+      product.id === nextProps.products[index]?.id &&
+      product.price === nextProps.products[index]?.price &&
+      product.inStock === nextProps.products[index]?.inStock
+    )
+  );
+});
+
+ProductGrid.displayName = 'ProductGrid';
 
 // Get Tailwind grid columns class
 function getGridCols(columns) {

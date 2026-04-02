@@ -96,7 +96,6 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const [details, setDetails] = useState({
     firstName: '',
     lastName: '',
-    username: '',
     email: '',
     password: '',
     gender: 'UNISEX',
@@ -133,7 +132,6 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
     setDetails({
       firstName: '',
       lastName: '',
-      username: '',
       email: '',
       password: '',
       gender: 'UNISEX',
@@ -258,7 +256,6 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
     const errs = {};
     if (details.firstName.trim().length < 2) errs.firstName = 'At least 2 characters';
     if (details.lastName.trim().length < 2) errs.lastName = 'At least 2 characters';
-    if (details.username.trim().length < 3) errs.username = 'At least 3 characters';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email)) errs.email = 'Enter a valid email';
     if (details.password.length < 8) errs.password = 'At least 8 characters';
     if (!details.dateOfBirth) errs.dateOfBirth = 'Date of birth is required';
@@ -539,19 +536,6 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                     <p className="text-xs text-red-500 mt-1">{detailsErrors.lastName}</p>
                   )}
                 </div>
-              </div>
-
-              <div>
-                <input
-                  type="text"
-                  placeholder="Username (min. 3 chars)"
-                  value={details.username}
-                  onChange={(e) => setDetail('username', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition ${detailsErrors.username ? 'border-red-400' : 'border-gray-300'}`}
-                />
-                {detailsErrors.username && (
-                  <p className="text-xs text-red-500 mt-1">{detailsErrors.username}</p>
-                )}
               </div>
 
               <div>

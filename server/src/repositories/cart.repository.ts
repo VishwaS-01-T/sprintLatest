@@ -11,7 +11,18 @@ export const cartRepository = {
         items: {
           include: {
             product: {
-              select: { id: true, name: true, slug: true, status: true },
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                brand: true,
+                status: true,
+                images: {
+                  where: { isThumbnail: true },
+                  select: { imageUrl: true },
+                  take: 1,
+                },
+              },
             },
             variant: {
               select: {
@@ -20,6 +31,7 @@ export const cartRepository = {
                 size: true,
                 color: true,
                 price: true,
+                comparePrice: true,
                 status: true,
               },
             },
