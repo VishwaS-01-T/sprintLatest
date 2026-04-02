@@ -9,6 +9,7 @@ import crypto from "crypto";
 import razorpay, {
   verifyPaymentSignature,
   getRazorpayKeyId,
+  isRazorpayConfigured,
 } from "../lib/razorpay.js";
 import { paymentRepository } from "../repositories/payment.repository.js";
 import { orderRepository } from "../repositories/order.repository.js";
@@ -57,8 +58,28 @@ export const createRazorpayOrder = async (paymentId: string) => {
     };
   }
 
+  // Development fallback so server can run without Razorpay credentials.
+  if (!isRazorpayConfigured()) {
+    if (IS_PRODUCTION) {
+      throw new PaymentError(500, "Razorpay is not configured");
+    }
+
+    const mockOrderId = `order_mock_${payment.id.replace(/-/g, "").slice(0, 14)}`;
+    await paymentRepository.updateTransactionId(payment.id, mockOrderId);
+
+    return {
+      razorpayOrderId: mockOrderId,
+      paymentId: payment.id,
+      orderId: payment.orderId,
+      amount: Math.round(payment.amount * 100),
+      currency: payment.currency || "INR",
+      keyId: "rzp_test_mock_key",
+      mock: true,
+    };
+  }
+
   // Create new Razorpay order
-  const razorpayOrder = (await razorpay.orders.create({
+  const razorpayOrder = (await razorpay!.orders.create({
     amount: Math.round(payment.amount * 100), // Convert to paise
     currency: payment.currency || "INR",
     receipt: payment.id,

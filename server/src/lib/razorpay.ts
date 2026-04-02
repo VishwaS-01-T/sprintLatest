@@ -12,8 +12,9 @@ import crypto from "crypto";
 
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || "";
 const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "";
+const HAS_RAZORPAY_CONFIG = Boolean(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET);
 
-if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+if (!HAS_RAZORPAY_CONFIG) {
   console.warn(
     "[Razorpay] Missing RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET. Payment features will not work.",
   );
@@ -21,10 +22,12 @@ if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
 
 // ─── Razorpay Instance ──────────────────────────────────────────────────────────
 
-const razorpay = new Razorpay({
-  key_id: RAZORPAY_KEY_ID,
-  key_secret: RAZORPAY_KEY_SECRET,
-});
+const razorpay = HAS_RAZORPAY_CONFIG
+  ? new Razorpay({
+      key_id: RAZORPAY_KEY_ID,
+      key_secret: RAZORPAY_KEY_SECRET,
+    })
+  : null;
 
 export default razorpay;
 
@@ -51,3 +54,5 @@ export const verifyPaymentSignature = (
  * Get Razorpay key ID for client-side checkout
  */
 export const getRazorpayKeyId = (): string => RAZORPAY_KEY_ID;
+
+export const isRazorpayConfigured = (): boolean => HAS_RAZORPAY_CONFIG;

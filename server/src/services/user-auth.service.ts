@@ -73,6 +73,9 @@ export const extractRequestInfo = (req: {
 
 export class AuthError extends AppError {}
 
+const IS_PRODUCTION = process.env.NODE_ENV?.toUpperCase() === "PRODUCTION";
+const DEV_FIXED_EMAIL_OTP = process.env.DEV_FIXED_EMAIL_OTP || "123456";
+
 // ─── Registration Flow ────────────────────────────────────────────────────────
 
 /**
@@ -187,9 +190,8 @@ export const initiateEmailVerificationOTP = async (
     throw new AuthError(409, "Email address already in use");
   }
 
-  // Generate OTP
-  const otp = generateOTP();
-  const IS_PRODUCTION = process.env.NODE_ENV?.toUpperCase() === "PRODUCTION";
+  // In dev/test keep OTP stable to simplify manual testing.
+  const otp = IS_PRODUCTION ? generateOTP() : DEV_FIXED_EMAIL_OTP;
 
   // Store OTP in Redis (10 min TTL)
   await storeOTP(`email:${email}`, otp, 10, "email_verification");
@@ -222,8 +224,11 @@ export const verifyEmailOTP = async (
     throw new AuthError(400, "Invalid or expired session");
   }
 
-  // Verify OTP
-  const valid = await verifyOTP(`email:${email}`, otp);
+  // In dev/test allow fixed OTP for faster local iteration.
+  const valid =
+    !IS_PRODUCTION && otp === DEV_FIXED_EMAIL_OTP
+      ? true
+      : await verifyOTP(`email:${email}`, otp);
   if (!valid) {
     throw new AuthError(400, "Invalid or expired OTP");
   }
@@ -249,9 +254,8 @@ export const resendEmailOTP = async (
     throw new AuthError(400, "Invalid or expired session");
   }
 
-  // Generate NEW OTP (force regeneration)
-  const otp = generateOTP();
-  const IS_PRODUCTION = process.env.NODE_ENV?.toUpperCase() === "PRODUCTION";
+  // Keep fixed OTP in non-production; regenerate only in production.
+  const otp = IS_PRODUCTION ? generateOTP() : DEV_FIXED_EMAIL_OTP;
 
   // Store OTP in Redis (10 min TTL) - overwrites existing
   await storeOTP(`email:${email}`, otp, 10, "email_verification");
