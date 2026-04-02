@@ -33,4 +33,10 @@ export const paymentRepository = {
       where: { id },
       data: { paymentStatus, ...extra },
     }),
+
+  updateTransactionId: (id: string, transactionId: string) =>
+    prisma.payment.update({
+      where: { id },
+      data: { transactionId },
+    }),
 };

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Star, CheckCircle, ChevronDown, Loader2 } from 'lucide-react';
+import { Star, CheckCircle, ChevronDown, Loader2, X } from 'lucide-react';
 import { reviewsApi } from '../lib/api';
+import useAuthStore from '../store/authStore';
+import { useRouter } from '../hooks/useRouter';
+import showToast from '../utils/toast';
 
 /**
  * Star display helper — renders 5 stars, filled up to `rating`.
@@ -109,22 +112,163 @@ function RatingBar({ star, count, total }) {
 }
 
 /**
+ * Write Review Modal
+ */
+function WriteReviewModal({ productId, onClose, onSuccess }) {
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [title, setTitle] = useState('');
+  const [text, setText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (rating === 0) {
+      showToast.error('Please select a rating');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await reviewsApi.createReview(productId, {
+        rating,
+        reviewTitle: title,
+        reviewText: text,
+      });
+      showToast.success('Review submitted successfully!');
+      onSuccess();
+      onClose();
+    } catch (err) {
+      showToast.error(err.message || 'Failed to submit review');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-scale-up">
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-neutral-900">Write a Review</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-neutral-100 rounded-xl transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Rating */}
+          <div>
+            <label className="block text-sm font-bold text-neutral-900 mb-2">
+              Rating <span className="text-rose-500">*</span>
+            </label>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  className="transition-transform hover:scale-110 active:scale-95"
+                >
+                  <Star
+                    className={`w-8 h-8 ${
+                      star <= (hoverRating || rating)
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'fill-neutral-200 text-neutral-200'
+                    } transition-colors`}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-bold text-neutral-900 mb-2">
+              Review Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Sum up your experience"
+              className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+              maxLength={100}
+            />
+          </div>
+
+          {/* Text */}
+          <div>
+            <label className="block text-sm font-bold text-neutral-900 mb-2">
+              Your Review
+            </label>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Tell us about your experience with this product"
+              rows={5}
+              className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
+              maxLength={1000}
+            />
+            <p className="text-xs text-neutral-400 mt-1">{text.length}/1000</p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 border-2 border-neutral-200 rounded-xl font-bold text-neutral-700 hover:border-neutral-300 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting || rating === 0}
+              className="flex-1 px-6 py-3 bg-amber-400 rounded-xl font-bold text-neutral-900 hover:bg-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submitting ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Submitting...
+                </span>
+              ) : (
+                'Submit Review'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/**
  * ProductReviews — fetches and displays paginated reviews for a product.
  */
 const ProductReviews = ({ productId, averageRating, reviewCount }) => {
+  const { navigate } = useRouter();
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const [reviews, setReviews] = useState([]);
   const [meta, setMeta] = useState(null); // { page, limit, total, totalPages }
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
+  const [showWriteModal, setShowWriteModal] = useState(false);
 
   const fetchReviews = useCallback(async (pageNum = 1, append = false) => {
     try {
       if (pageNum === 1) setLoading(true);
       else setLoadingMore(true);
 
-      const res = await reviewsApi.getReviews(productId, pageNum, 5);
+      const res = await reviewsApi.getProductReviews(productId, { page: pageNum, limit: 5 });
       const data = res.data;
       const pagination = data.pagination || data.meta || null;
 
@@ -148,6 +292,20 @@ const ProductReviews = ({ productId, averageRating, reviewCount }) => {
     const next = page + 1;
     setPage(next);
     fetchReviews(next, true);
+  };
+
+  const handleWriteReview = () => {
+    if (!isLoggedIn) {
+      showToast.info('Please login to write a review');
+      navigate('/login');
+      return;
+    }
+    setShowWriteModal(true);
+  };
+
+  const handleReviewSuccess = () => {
+    setPage(1);
+    fetchReviews(1, false);
   };
 
   // Build breakdown from loaded reviews (approximate — real breakdown would need API support)
@@ -181,6 +339,26 @@ const ProductReviews = ({ productId, averageRating, reviewCount }) => {
 
   return (
     <div className="max-w-3xl animate-fade-in">
+      {/* Write Review Modal */}
+      {showWriteModal && (
+        <WriteReviewModal
+          productId={productId}
+          onClose={() => setShowWriteModal(false)}
+          onSuccess={handleReviewSuccess}
+        />
+      )}
+
+      {/* Header with Write Review Button */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-neutral-900">Customer Reviews</h2>
+        <button
+          onClick={handleWriteReview}
+          className="px-6 py-2.5 bg-amber-400 rounded-xl font-bold text-neutral-900 hover:bg-amber-500 transition-colors hover-lift"
+        >
+          Write a Review
+        </button>
+      </div>
+
       {/* Summary */}
       <div className="flex flex-col sm:flex-row gap-8 mb-8 p-6 bg-neutral-50 rounded-2xl">
         {/* Overall score */}

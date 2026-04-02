@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link, useRouter } from "../hooks/useRouter.jsx";
 import useAuthStore from "../store/authStore";
 import { ordersApi } from "../lib/api/ordersApi";
-import { useToast } from "../hooks/useToast";
+import showToast from "../utils/toast";
+import { OrderDetailSkeleton } from "../components/skeletons/OrderDetailSkeleton";
 
 const OrderDetailPage = () => {
   const { currentPath, navigate } = useRouter();
@@ -10,13 +11,12 @@ const OrderDetailPage = () => {
   const [order, setOrder] = useState(null);
   const [tracking, setTracking] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { info: showInfo, error: showError } = useToast();
 
   const orderId = currentPath.split("/").pop();
 
   useEffect(() => {
     if (!isLoggedIn) {
-      showInfo("Please login to view order details.");
+      showToast.info("Please login to view order details.");
       navigate("/products");
       return;
     }
@@ -34,7 +34,7 @@ const OrderDetailPage = () => {
         }
       })
       .catch((err) => {
-        if (active) showError(err.message || "Failed to load order details");
+        if (active) showToast.error(err.message || "Failed to load order details");
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -43,10 +43,16 @@ const OrderDetailPage = () => {
     return () => {
       active = false;
     };
-  }, [isLoggedIn, navigate, orderId, showError, showInfo]);
+  }, [isLoggedIn, navigate, orderId]);
 
   if (loading) {
-    return <div className="min-h-screen bg-neutral-50 p-8">Loading order details...</div>;
+    return (
+      <div className="min-h-screen bg-neutral-50 py-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <OrderDetailSkeleton />
+        </div>
+      </div>
+    );
   }
 
   if (!order) {

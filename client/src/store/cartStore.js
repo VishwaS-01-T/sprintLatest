@@ -11,7 +11,7 @@ const parseCartItem = (serverItem) => ({
   brand: serverItem.product?.brand || '',
   price: Number(serverItem.unitPrice || serverItem.variant?.price || 0),
   originalPrice: Number(serverItem.variant?.comparePrice || 0) || null,
-  image: serverItem.product?.thumbnail || '',
+  image: serverItem.product?.images?.[0]?.imageUrl || serverItem.product?.thumbnail || '',
   size: serverItem.size || serverItem.variant?.size || '',
   color: serverItem.color || serverItem.variant?.color || '',
   quantity: Number(serverItem.quantity || 1),
@@ -103,7 +103,7 @@ const useCartStore = create((set, get) => ({
     set({ syncing: true });
     try {
       await cartApi.syncCart({
-        guestSessionId: `guest-${Date.now()}`,
+        sessionId: `guest-${Date.now()}`,
         items: localItems.map((item) => ({
           variantId: item.variantId,
           quantity: item.quantity,

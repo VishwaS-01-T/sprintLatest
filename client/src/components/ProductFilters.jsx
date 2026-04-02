@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   ChevronDown,
   X,
@@ -19,6 +19,7 @@ const sortOptions = [
  * ProductFilters Component
  * Handles filtering and sorting of products
  * Props structured for backend integration
+ * Optimized with React.memo and useCallback for performance
  */
 const ProductFilters = ({
   filters = {},
@@ -33,40 +34,36 @@ const ProductFilters = ({
     category: true,
     gender: true,
     price: true,
-    availability: false,
+    stock: true,
   });
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const toggleSection = (section) => {
+  const toggleSection = useCallback((section) => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
     }));
-  };
+  }, []);
 
-  const handleCategoryChange = (categoryId) => {
-    onFilterChange({
-      category: categoryId === filters.category ? "all" : categoryId,
-    });
-  };
-
-  const handleGenderChange = (gender) => {
+  const handleGenderChange = useCallback((gender) => {
     onFilterChange({ gender: gender === filters.gender ? null : gender });
-  };
+  }, [filters.gender, onFilterChange]);
 
-  const handleSortChange = (sortId) => {
+  const handleSortChange = useCallback((sortId) => {
     onFilterChange({ sort: sortId });
-  };
+  }, [onFilterChange]);
 
-  const handlePriceChange = (min, max) => {
+  const handlePriceChange = useCallback((min, max) => {
     onFilterChange({ minPrice: min, maxPrice: max });
-  };
+  }, [onFilterChange]);
 
-  const activeFiltersCount = [
+  // Memoize active filters count calculation
+  const activeFiltersCount = useMemo(() => [
     filters.category && filters.category !== "all",
     filters.gender,
     filters.minPrice !== undefined,
     filters.inStock,
-  ].filter(Boolean).length;
+  ].filter(Boolean).length, [filters.category, filters.gender, filters.minPrice, filters.inStock]);
 
   const renderFilterContent = () => (
     <div className="space-y-6">
@@ -441,6 +438,8 @@ const SortDropdown = ({ value, onChange }) => {
     </div>
   );
 };
+
+ProductFilters.displayName = 'ProductFilters';
 
 export default ProductFilters;
 

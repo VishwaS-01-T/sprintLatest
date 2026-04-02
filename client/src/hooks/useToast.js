@@ -1,21 +1,22 @@
-import useToastStore from "../store/toastStore";
 import { useCallback, useMemo } from "react";
+import showToast from "../utils/toast";
 
+/**
+ * useToast hook - wrapper around react-hot-toast for backward compatibility
+ * Provides success, error, and info methods
+ */
 export function useToast() {
-  const push = useToastStore((s) => s.push);
-
   const success = useCallback(
-    (message, title = "Success") => push({ type: "success", title, message }),
-    [push],
+    (message) => showToast.success(message),
+    [],
   );
   const error = useCallback(
-    (message, title = "Something went wrong") =>
-      push({ type: "error", title, message }),
-    [push],
+    (message) => showToast.error(message),
+    [],
   );
   const info = useCallback(
-    (message, title = "Info") => push({ type: "info", title, message }),
-    [push],
+    (message) => showToast.info(message),
+    [],
   );
 
   return useMemo(() => ({ success, error, info }), [success, error, info]);
