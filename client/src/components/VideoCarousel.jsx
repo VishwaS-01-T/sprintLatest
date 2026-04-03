@@ -1,10 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { hightlightsSlides } from '../constants';
-import { pauseImg, playImg, replayImg } from '../utils';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Play, Pause, RotateCcw } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,6 +11,7 @@ const VideoCarousel = () => {
   const videoSpanRef = useRef([]);
   const videoDivRef = useRef([]);
   const sliderRef = useRef(null);
+  const sectionRef = useRef(null);
 
   const [video, setVideo] = useState({
     isEnd: false,
@@ -22,41 +21,48 @@ const VideoCarousel = () => {
     isPlaying: false
   });
 
-  const [loadedData, setLoadedData] = useState([]);
-
   const { isEnd, startPlay, videoId, isLastVideo, isPlaying } = video;
+  const slideCount = hightlightsSlides.length;
 
-  useGSAP(() => {
-    gsap.to('#slider', {
-      transform: `translateX(${-videoId * 100}%)`,
-      duration: 1,
-      ease: 'power3.inOut'
-    });
-
-    gsap.to('#video', {
-      scrollTrigger: {
-        trigger: '#highlights',
-        start: 'top 60%',
-        toggleActions: 'play none none none'
-      },
-      onComplete: () => {
-        setVideo(prev => ({ ...prev, startPlay: true, isPlaying: true }))
+  useGSAP(
+    () => {
+      if (sliderRef.current) {
+        gsap.to(sliderRef.current, {
+          transform: `translateX(${-videoId * 100}%)`,
+          duration: 1,
+          ease: 'power3.inOut',
+        });
       }
-    });
-  }, [isEnd, videoId]);
+
+      const trigger = sectionRef.current
+        ? ScrollTrigger.create({
+            trigger: sectionRef.current,
+            start: 'top 60%',
+            once: true,
+            onEnter: () => {
+              setVideo((prev) => ({ ...prev, startPlay: true, isPlaying: true }));
+            },
+          })
+        : null;
+
+      return () => {
+        trigger?.kill();
+      };
+    },
+    { dependencies: [videoId, slideCount, isEnd], scope: sectionRef }
+  );
 
   useEffect(() => {
-    if (loadedData.length > 3) {
-      if (!isPlaying) {
-        videoRef.current[videoId].pause();
-      } else {
-        startPlay && videoRef.current[videoId].play();
-      }
-    }
-  }, [startPlay, videoId, isPlaying, loadedData]);
+    const currentVideo = videoRef.current[videoId];
+    if (!currentVideo || !startPlay) return;
 
-  const handleLoadedMetadata = (i, e) =>
-    setLoadedData(prev => [...prev, e]);
+    if (!isPlaying) {
+      currentVideo.pause();
+      return;
+    }
+
+    currentVideo.play().catch(() => {});
+  }, [startPlay, videoId, isPlaying]);
 
   useEffect(() => {
     let currentProgress = 0;
@@ -83,7 +89,9 @@ const VideoCarousel = () => {
       }
     });
 
-    if (span[videoId]) {
+    const currentVideo = videoRef.current[videoId];
+
+    if (span[videoId] && currentVideo) {
       anim = gsap.to(span[videoId], {
         onUpdate: () => {
           const progress = Math.ceil(anim.progress() * 100);
@@ -144,13 +152,13 @@ const VideoCarousel = () => {
         anim.kill();
       }
     };
-  }, [videoId, startPlay]);
+  }, [videoId, startPlay, isPlaying]);
 
   // Auto-restart from beginning when last video ends
   useEffect(() => {
     if (isLastVideo) {
       // Animate the transition and restart
-      gsap.to('#slider', {
+      gsap.to(sliderRef.current, {
         opacity: 0,
         duration: 0.3,
         onComplete: () => {
@@ -160,7 +168,7 @@ const VideoCarousel = () => {
             videoId: 0,
             isEnd: true
           }));
-          gsap.to('#slider', {
+          gsap.to(sliderRef.current, {
             opacity: 1,
             duration: 0.3
           });
@@ -172,7 +180,7 @@ const VideoCarousel = () => {
   const handleProcess = (type, i) => {
     switch (type) {
       case 'video-end':
-        setVideo(prev => ({ ...prev, isEnd: true, videoId: i + 1 }));
+        setVideo(prev => ({ ...prev, isEnd: true, videoId: (i + 1) % slideCount }));
         break;
       case 'video-last':
         setVideo(prev => ({ ...prev, isLastVideo: true }));
@@ -192,27 +200,25 @@ const VideoCarousel = () => {
   const handleIndicatorClick = (index) => {
     if (index !== videoId) {
       // Pause current video and reset it
-      videoRef.current[videoId].pause();
-      videoRef.current[videoId].currentTime = 0;
+      videoRef.current[videoId]?.pause();
+      if (videoRef.current[videoId]) videoRef.current[videoId].currentTime = 0;
       setVideo(prev => ({ ...prev, videoId: index, isEnd: true }));
     }
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={sectionRef}>
       {/* Video Slider Container */}
       <div className="relative overflow-hidden rounded-[20px] md:rounded-[24px] bg-neutral-900 shadow-[var(--shadow-soft)]">
-        <div className="flex" ref={sliderRef}>
+        <div className="flex will-change-transform" ref={sliderRef}>
           {hightlightsSlides.map((list, i) => (
             <div 
               key={list.id} 
-              id="slider" 
-              className="min-w-full"
+              className="min-w-full shrink-0"
             >
               <div className="relative w-full aspect-[16/9] md:aspect-[21/9]">
                 {/* Video */}
                 <video
-                  id="video"
                   playsInline
                   muted
                   preload="auto"
@@ -226,7 +232,6 @@ const VideoCarousel = () => {
                   onPlay={() =>
                     setVideo(prev => ({ ...prev, isPlaying: true }))
                   }
-                  onLoadedMetadata={e => handleLoadedMetadata(i, e)}
                 >
                   <source src={list.video} type="video/mp4" />
                 </video>

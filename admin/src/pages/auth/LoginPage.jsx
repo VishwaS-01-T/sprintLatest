@@ -23,8 +23,8 @@ function LoginPage() {
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: 'admin@sprintshoes.com',
-      password: 'admin123',
+      email: 'admin1@shoesprint.com',
+      password: 'Admin@123',
     },
   })
 
@@ -82,7 +82,7 @@ function LoginPage() {
         </form>
 
         <p className="mt-4 text-xs text-slate-500">
-          Tip: Update credentials in `src/pages/auth/LoginPage.jsx` defaults if needed.
+          Tip: Seeded admin login is admin1@shoesprint.com / Admin@123.
         </p>
       </div>
     </div>

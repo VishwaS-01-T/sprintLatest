@@ -319,6 +319,7 @@ export const createCheckoutOrder = async (
     addressId: string;
     couponCode?: string;
     shippingMethod?: string;
+    paymentMethod?: string;
   },
 ) => {
   // 1. Get cart
@@ -443,15 +444,21 @@ export const createCheckoutOrder = async (
       });
     }
 
-    // Create pending payment record for Razorpay
+    // Determine payment provider based on method
+    const isCoD = data.paymentMethod === "COD";
+    const paymentProvider = isCoD ? "INTERNAL" : "RAZORPAY";
+    const paymentStatus = isCoD ? "PENDING" : "PENDING";
+    const selectedPaymentMethod = (data.paymentMethod || "UPI") as PaymentMethod;
+
+    // Create pending payment record
     const createdPayment = await tx.payment.create({
       data: {
         orderId: createdOrder.id,
-        paymentMethod: "UPI", // Default, will be updated when user selects method
-        paymentProvider: "RAZORPAY",
+        paymentMethod: selectedPaymentMethod,
+        paymentProvider: paymentProvider,
         amount: totalAmount,
         currency: "INR",
-        paymentStatus: "PENDING",
+        paymentStatus: paymentStatus,
       },
     });
 
@@ -475,7 +482,7 @@ export const createCheckoutOrder = async (
 };
 
 /**
- * Step 3: Process payment - Placeholder for Razorpay integration
+ * Step 3: Process payment - Handle both Razorpay and COD
  */
 export const processOrderPayment = async (
   userId: string,
@@ -497,7 +504,42 @@ export const processOrderPayment = async (
     throw new OrderError(400, "Order already paid");
   }
 
-  // Create or update payment record
+  // For COD, mark payment as completed immediately
+  if (data.paymentMethod === "COD") {
+    const payment = existingPayment
+      ? await prisma.payment.update({
+          where: { id: existingPayment.id },
+          data: {
+            paymentMethod: data.paymentMethod,
+            paymentProvider: "INTERNAL" as PaymentProvider,
+            paymentStatus: "COMPLETED",
+            paidAt: new Date(),
+          },
+        })
+      : await prisma.payment.create({
+          data: {
+            orderId: order.id,
+            paymentMethod: data.paymentMethod,
+            paymentProvider: "INTERNAL" as PaymentProvider,
+            amount: order.totalAmount,
+            paymentStatus: "COMPLETED",
+            paidAt: new Date(),
+          },
+        });
+
+    // Update order status to CONFIRMED for COD
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { orderStatus: "CONFIRMED" },
+    });
+
+    return {
+      paymentId: payment.id,
+      message: "COD order confirmed successfully",
+    };
+  }
+
+  // For online payments, create/update payment record for Razorpay
   const payment = existingPayment
     ? await prisma.payment.update({
         where: { id: existingPayment.id },
@@ -738,6 +780,45 @@ export const generateOrderInvoice = async (userId: string, orderId: string) => {
 
 // ─── Client Order Endpoints ───────────────────────────────────────────────────
 
+/**
+ * Format order data for client list response (simplified)
+ */
+const formatOrderForListClient = (order: any) => {
+  // Get first payment status
+  const paymentStatus = order.payments?.[0]?.paymentStatus || order.paymentStatus || "PENDING";
+
+  const getThumbnail = (item: any) =>
+    item.product?.images?.[0]?.imageUrl ||
+    item.variant?.images?.[0]?.imageUrl ||
+    "";
+
+  // Format items with proper field names
+  const items = order.items?.map((item: any) => ({
+    id: item.id,
+    productName: item.product?.name || item.productNameSnapshot || "Product",
+    productSlug: item.product?.slug || "",
+    productId: item.productId,
+    size: item.size,
+    color: item.color,
+    quantity: item.quantity,
+    price: item.price,
+    totalPrice: item.total,
+    thumbnail: getThumbnail(item),
+  })) || [];
+
+  return {
+    id: order.id,
+    orderNumber: order.orderNumber,
+    status: order.orderStatus,
+    paymentStatus: paymentStatus,
+    createdAt: order.placedAt, // Map placedAt to createdAt for frontend
+    placedAt: order.placedAt,
+    totalAmount: order.totalAmount,
+    itemCount: order.items?.length || 0,
+    items, // Include items for preview
+  };
+};
+
 export const listUserOrders = async (userId: string, page = 1, limit = 10) => {
   const skip = (page - 1) * limit;
   const [orders, total] = await orderRepository.findByCustomer(
@@ -746,8 +827,72 @@ export const listUserOrders = async (userId: string, page = 1, limit = 10) => {
     limit,
   );
   return {
-    orders,
+    orders: orders.map(formatOrderForListClient),
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  };
+};
+
+/**
+ * Format order data for client response
+ */
+const formatOrderForClient = (order: any) => {
+  // Parse address from JSON
+  let shippingAddress = null;
+  if (order.addresses?.shippingAddress) {
+    try {
+      shippingAddress = JSON.parse(order.addresses.shippingAddress);
+    } catch (e) {
+      shippingAddress = null;
+    }
+  }
+
+  // Get first payment (usually only one per order)
+  const payment = order.payments?.[0]
+    ? {
+        paymentMethod: order.payments[0].paymentMethod,
+        status: order.payments[0].paymentStatus,
+        amount: order.payments[0].amount,
+        provider: order.payments[0].paymentProvider,
+      }
+    : null;
+
+  // Format items with proper field names
+  const getThumbnail = (item: any) =>
+    item.product?.images?.[0]?.imageUrl ||
+    item.variant?.images?.[0]?.imageUrl ||
+    "";
+
+  const items = order.items?.map((item: any) => ({
+    id: item.id,
+    productName: item.product?.name || item.productNameSnapshot || "Product",
+    productSlug: item.product?.slug || "",
+    productId: item.productId,
+    size: item.size,
+    color: item.color,
+    quantity: item.quantity,
+    price: item.price,
+    totalPrice: item.total,
+    thumbnail: getThumbnail(item),
+  })) || [];
+
+  return {
+    id: order.id,
+    orderNumber: order.orderNumber,
+    status: order.orderStatus,
+    paymentStatus: order.paymentStatus,
+    fulfillmentStatus: order.fulfillmentStatus,
+    createdAt: order.placedAt, // Map placedAt to createdAt for frontend
+    placedAt: order.placedAt,
+    updatedAt: order.updatedAt,
+    subtotal: order.subtotal,
+    taxAmount: order.taxAmount,
+    shippingCost: order.shippingCost,
+    discountAmount: order.discountAmount,
+    totalAmount: order.totalAmount,
+    shippingAddress,
+    payment,
+    items,
+    customer: order.customer,
   };
 };
 
@@ -755,7 +900,7 @@ export const getUserOrder = async (userId: string, orderId: string) => {
   const order = await orderRepository.findById(orderId);
   if (!order) throw new OrderError(404, "Order not found");
   if (order.customerId !== userId) throw new OrderError(403, "Not your order");
-  return order;
+  return formatOrderForClient(order);
 };
 
 export const getUserOrderStats = async (userId: string) => {
@@ -797,7 +942,8 @@ export const cancelOrder = async (userId: string, orderId: string) => {
   }
 
   await orderRepository.updateStatus(orderId, "CANCELLED");
-  return orderRepository.findById(orderId);
+  const cancelledOrder = await orderRepository.findById(orderId);
+  return formatOrderForClient(cancelledOrder);
 };
 
 export const updateOrderAddress = async (
@@ -835,7 +981,8 @@ export const updateOrderAddress = async (
     },
   });
 
-  return orderRepository.findById(orderId);
+  const updatedOrder = await orderRepository.findById(orderId);
+  return formatOrderForClient(updatedOrder);
 };
 
 // ─── Admin Order Endpoints ────────────────────────────────────────────────────

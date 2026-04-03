@@ -29,6 +29,7 @@ const Highlights = () => {
 
   return (
     <section
+      id="highlights"
       className="
         w-full overflow-hidden
         py-20 px-4
@@ -58,7 +59,6 @@ const Highlights = () => {
                 text-neutral-900
                 text-3xl sm:text-4xl lg:text-5xl
                 font-bold
-                opacity-0 translate-y-8
               "
               variants={itemVariants}
             >
@@ -67,7 +67,9 @@ const Highlights = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <motion.button className="
+            <motion.button
+              variants={itemVariants}
+              className="
               link
               group
               inline-flex items-center gap-2
@@ -76,7 +78,6 @@ const Highlights = () => {
               text-white
               text-sm font-medium
               rounded-full
-              opacity-0 translate-y-8
               transition-all duration-200
               hover:shadow-lg
             ">
@@ -84,7 +85,9 @@ const Highlights = () => {
               Watch Collection
             </motion.button>
 
-            <motion.button className="
+            <motion.button
+              variants={itemVariants}
+              className="
               link
               group
               inline-flex items-center gap-2
@@ -94,7 +97,6 @@ const Highlights = () => {
               text-sm font-medium
               rounded-full
               border-2 border-neutral-200 hover:border-amber-500
-              opacity-0 translate-y-8
               transition-all duration-200
             ">
               Shop Now

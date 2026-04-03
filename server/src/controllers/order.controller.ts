@@ -26,6 +26,14 @@ const createOrderSchema = z.object({
   addressId: z.string().uuid("Invalid address ID"),
   couponCode: z.string().optional(),
   shippingMethod: z.string().optional(),
+  paymentMethod: z.enum([
+    "CREDIT_CARD",
+    "DEBIT_CARD",
+    "NET_BANKING",
+    "WALLET",
+    "UPI",
+    "COD",
+  ]).optional(),
 });
 
 const processPaymentSchema = z.object({

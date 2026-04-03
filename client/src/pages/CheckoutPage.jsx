@@ -109,13 +109,26 @@ const CheckoutPage = () => {
 
       const created = await ordersApi.createCheckoutOrder({
         addressId: shippingAddressId,
+        paymentMethod: paymentMethod,
       });
       const order = created.data?.order;
       const paymentId = created.data?.paymentId;
       if (!order?.id) throw new Error("Unable to create order");
+
+      // For Cash on Delivery, skip Razorpay and complete order directly
+      if (paymentMethod === "COD") {
+        await ordersApi.processPayment(order.id, {
+          paymentMethod: "COD",
+        });
+        clearCart();
+        showToast.success("Order placed successfully! It will be confirmed after payment verification.");
+        navigate(`/orders/${order.id}`);
+        return;
+      }
+
       if (!paymentId) throw new Error("Unable to create payment session");
 
-      // Store order data and show payment modal
+      // Store order data and show payment modal for online payments
       setOrderData({
         orderId: order.id,
         id: order.id,

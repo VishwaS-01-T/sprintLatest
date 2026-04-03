@@ -22,9 +22,30 @@ export const orderRepository = {
       include: {
         items: {
           include: {
-            product: { select: { id: true, name: true, slug: true } },
+            product: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                images: {
+                  take: 1,
+                  orderBy: { position: "asc" },
+                  select: { imageUrl: true, altText: true, isThumbnail: true },
+                },
+              },
+            },
             variant: {
-              select: { id: true, sku: true, size: true, color: true },
+              select: {
+                id: true,
+                sku: true,
+                size: true,
+                color: true,
+                images: {
+                  take: 1,
+                  orderBy: { position: "asc" },
+                  select: { imageUrl: true, altText: true, isThumbnail: true },
+                },
+              },
             },
           },
         },
@@ -60,7 +81,18 @@ export const orderRepository = {
         include: {
           items: {
             include: {
-              product: { select: { id: true, name: true, slug: true } },
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  images: {
+                    take: 1,
+                    orderBy: { position: "asc" },
+                    select: { imageUrl: true, altText: true, isThumbnail: true },
+                  },
+                },
+              },
             },
           },
           payments: { select: { paymentStatus: true } },

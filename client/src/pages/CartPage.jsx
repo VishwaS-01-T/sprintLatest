@@ -16,6 +16,7 @@ import {
 
 const CartPage = () => {
   const items = useCartStore((s) => s.items);
+  const cartSummary = useCartStore((s) => s.cartSummary);
   const incrementQuantity = useCartStore((s) => s.incrementQuantityAsync);
   const decrementQuantity = useCartStore((s) => s.decrementQuantityAsync);
   const removeItem = useCartStore((s) => s.removeItemAsync);
