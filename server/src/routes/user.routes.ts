@@ -20,6 +20,11 @@ import {
   resetPassword,
   getCurrentUser,
   updateUserProfile,
+  checkEmailExists,
+  requestEmailLoginOTP,
+  loginWithEmailOTP,
+  requestEmailRegisterOTP,
+  completeEmailRegistration,
 } from "../controllers/user.controller.js";
 import { authenticateUser } from "../middlewares/auth.middleware.js";
 import {
@@ -64,6 +69,13 @@ userRouter.post("/auth/login/request-otp", otpLimiter, requestLoginOTP);
 userRouter.post("/auth/login/resend-otp", otpLimiter, resendLoginOTP);
 userRouter.post("/auth/login/phone", authLimiter, loginWithPhone);
 userRouter.post("/auth/login", authLimiter, loginWithEmail);
+
+// ─── Passwordless Auth ────────────────────────────────────────────────────────
+userRouter.post("/auth/check-email", authLimiter, checkEmailExists);
+userRouter.post("/auth/email-otp/login/request", otpLimiter, requestEmailLoginOTP);
+userRouter.post("/auth/email-otp/login/verify", authLimiter, loginWithEmailOTP);
+userRouter.post("/auth/email-otp/register/request", otpLimiter, requestEmailRegisterOTP);
+userRouter.post("/auth/email-otp/register/verify", authLimiter, completeEmailRegistration);
 
 // ─── Session Management ───────────────────────────────────────────────────────
 userRouter.post("/auth/logout", logout);

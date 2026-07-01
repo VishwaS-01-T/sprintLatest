@@ -75,6 +75,7 @@ export class AuthError extends AppError {}
 
 const IS_PRODUCTION = process.env.NODE_ENV?.toUpperCase() === "PRODUCTION";
 const DEV_FIXED_EMAIL_OTP = process.env.DEV_FIXED_EMAIL_OTP || "123456";
+const DEV_FIXED_PHONE_OTP = process.env.DEV_FIXED_PHONE_OTP || "123456";
 
 // ─── Registration Flow ────────────────────────────────────────────────────────
 
@@ -140,7 +141,10 @@ export const verifyPhoneOTP = async (
   phoneNumber: string,
   otp: string,
 ): Promise<{ sessionId: string }> => {
-  const valid = await verifyOTP(`phone:${phoneNumber}`, otp);
+  const valid =
+    !IS_PRODUCTION && otp === DEV_FIXED_PHONE_OTP
+      ? true
+      : await verifyOTP(`phone:${phoneNumber}`, otp);
   if (!valid) throw new AuthError(400, "Invalid or expired OTP");
 
   await deleteOTP(`phone:${phoneNumber}`);
@@ -412,7 +416,10 @@ export const loginWithPhone = async (
   otp: string,
   requestInfo: { device: string; ipAddress: string },
 ) => {
-  const valid = await verifyOTP(`phone:${phoneNumber}`, otp);
+  const valid =
+    !IS_PRODUCTION && otp === DEV_FIXED_PHONE_OTP
+      ? true
+      : await verifyOTP(`phone:${phoneNumber}`, otp);
   if (!valid) throw new AuthError(400, "Invalid or expired OTP");
   await deleteOTP(`phone:${phoneNumber}`);
 
@@ -635,6 +642,118 @@ export const resetPassword = async (
 
   // Notifications (fire-and-forget)
   sendPasswordChangedNotification(email, user.firstName).catch(console.error);
+};
+
+// ─── Passwordless Email Auth ──────────────────────────────────────────────────
+
+export const checkEmailExists = async (email: string): Promise<boolean> => {
+  const user = await userRepository.findByEmail(email);
+  return !!user;
+};
+
+export const requestEmailLoginOTP = async (email: string): Promise<{ devOtp?: string }> => {
+  const user = await userRepository.findByEmail(email);
+  if (!user) throw new AuthError(404, "User not found");
+  if (user.status !== "ACTIVE") throw new AuthError(403, "Account is not active");
+
+  const otp = IS_PRODUCTION ? generateOTP() : DEV_FIXED_EMAIL_OTP;
+  await storeOTP(`email-login:${email}`, otp, 10, "login");
+
+  const sent = await sendOTPEmail(email, otp, user.firstName);
+  if (!sent && IS_PRODUCTION) throw new AuthError(500, "Failed to send OTP email");
+
+  return { devOtp: IS_PRODUCTION ? undefined : otp };
+};
+
+export const loginWithEmailOTP = async (
+  email: string,
+  otp: string,
+  requestInfo: { device: string; ipAddress: string },
+) => {
+  const valid =
+    !IS_PRODUCTION && otp === DEV_FIXED_EMAIL_OTP
+      ? true
+      : await verifyOTP(`email-login:${email}`, otp);
+  if (!valid) throw new AuthError(400, "Invalid or expired OTP");
+  await deleteOTP(`email-login:${email}`);
+
+  const user = await userRepository.findByEmail(email);
+  if (!user) throw new AuthError(404, "User not found");
+  if (user.status !== "ACTIVE") throw new AuthError(403, "Account is not active");
+
+  const refreshToken = newRefreshToken();
+  await userSessionRepository.create({
+    userId: user.id,
+    device: requestInfo.device,
+    ipAddress: requestInfo.ipAddress,
+    refreshToken,
+  });
+
+  await userRepository.touchLastLogin(user.id);
+  const accessToken = signAccessToken(user.id, user.email);
+
+  sendLoginNotification(user.email, user.firstName, requestInfo.device, requestInfo.ipAddress, new Date()).catch(console.error);
+
+  return {
+    user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, status: user.status },
+    accessToken,
+    refreshToken,
+  };
+};
+
+export const requestEmailRegisterOTP = async (
+  email: string,
+  firstName: string,
+): Promise<{ devOtp?: string }> => {
+  const existing = await userRepository.findByEmail(email);
+  if (existing) throw new AuthError(409, "Email address already in use");
+
+  const otp = IS_PRODUCTION ? generateOTP() : DEV_FIXED_EMAIL_OTP;
+  await storeOTP(`email-register:${email}`, otp, 10, "registration");
+
+  const sent = await sendOTPEmail(email, otp, firstName);
+  if (!sent && IS_PRODUCTION) throw new AuthError(500, "Failed to send verification email");
+
+  return { devOtp: IS_PRODUCTION ? undefined : otp };
+};
+
+export const completeEmailRegistration = async (
+  data: { firstName: string; lastName: string; email: string },
+  otp: string,
+  requestInfo: { device: string; ipAddress: string },
+) => {
+  const valid =
+    !IS_PRODUCTION && otp === DEV_FIXED_EMAIL_OTP
+      ? true
+      : await verifyOTP(`email-register:${data.email}`, otp);
+  if (!valid) throw new AuthError(400, "Invalid or expired OTP");
+
+  const emailExists = await userRepository.findByEmail(data.email);
+  if (emailExists) throw new AuthError(409, "Email address already in use");
+
+  await deleteOTP(`email-register:${data.email}`);
+
+  const user = await userRepository.create({
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    emailVerified: true,
+    status: "ACTIVE",
+  });
+
+  const refreshToken = newRefreshToken();
+  await userSessionRepository.create({
+    userId: user.id,
+    device: requestInfo.device,
+    ipAddress: requestInfo.ipAddress,
+    refreshToken,
+  });
+
+  const accessToken = signAccessToken(user.id, user.email);
+
+  sendWelcomeEmail(user.email, user.firstName).catch(console.error);
+
+  return { user, accessToken, refreshToken };
 };
 
 // ─── Profile ──────────────────────────────────────────────────────────────────

@@ -1,19 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { X, ArrowLeft, Loader2 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import { userAuth } from '../lib/api';
 
-/**
- * Steps:
- *  'phone'     → Enter phone number
- *  'phone-otp' → Verify 6-digit phone OTP
- *  'details'   → Registration details (new users only)
- *  'email-otp' → Verify email (6-digit code from email)
- */
-
 const RESEND_SECONDS = 30;
 
-// Generic 6-box OTP input component
 function OtpBoxes({ value, onChange, onKeyDown, inputRefs, error }) {
   return (
     <div className="flex justify-center gap-3">
@@ -23,6 +14,7 @@ function OtpBoxes({ value, onChange, onKeyDown, inputRefs, error }) {
           ref={(el) => (inputRefs.current[idx] = el)}
           type="text"
           inputMode="numeric"
+          autoComplete="one-time-code"
           maxLength={1}
           value={digit}
           onChange={(e) => onChange(idx, e.target.value)}
@@ -44,282 +36,191 @@ function OtpBoxes({ value, onChange, onKeyDown, inputRefs, error }) {
           className={`w-11 h-12 text-center text-lg font-bold border-2 rounded-[20px] focus:outline-none transition-all duration-[250ms] ease ${
             error ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60'
           }`}
+          aria-label={`Digit ${idx + 1}`}
         />
       ))}
     </div>
   );
 }
 
-// Countdown timer hook
 function useCountdown(start, active) {
   const [seconds, setSeconds] = useState(start);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
     if (!active) return;
-    setSeconds(start);
-    setDone(false);
+    let isMounted = true;
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      setSeconds(start);
+      setDone(false);
+    });
     const id = setInterval(() => {
       setSeconds((s) => {
         if (s <= 1) { clearInterval(id); setDone(true); return 0; }
         return s - 1;
       });
     }, 1000);
-    return () => clearInterval(id);
+    return () => {
+      isMounted = false;
+      clearInterval(id);
+    };
   }, [active, start]);
 
   const fmt = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
   return { fmt, done };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const login = useAuthStore((s) => s.login);
 
-  // ---- Step / flow state ----
-  const [step, setStep] = useState('phone');
+  // 'login', 'register', 'otp'
+  const [step, setStep] = useState('login');
+  
+  // which flow initiated the OTP
   const [flow, setFlow] = useState(null); // 'login' | 'register'
+  
+  // Shared fields
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  
+  // OTP state
+  const [otp, setOtp] = useState(Array(6).fill(''));
+  const [otpError, setOtpError] = useState('');
+  const [otpActive, setOtpActive] = useState(false);
+  const otpRefs = useRef([]);
+  const timer = useCountdown(RESEND_SECONDS, otpActive);
 
-  // ---- Phone step ----
-  const [phone, setPhone] = useState('');
-  const phoneE164 = '+91' + phone;
-
-  // ---- Phone OTP step ----
-  const [phoneOtp, setPhoneOtp] = useState(Array(6).fill(''));
-  const [phoneOtpError, setPhoneOtpError] = useState('');
-  const [phoneOtpActive, setPhoneOtpActive] = useState(false);
-  const phoneOtpRefs = useRef([]);
-  const phoneTimer = useCountdown(RESEND_SECONDS, phoneOtpActive);
-
-  // ---- Details step (register only) ----
-  const [details, setDetails] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    gender: 'UNISEX',
-    dateOfBirth: '1995-01-01',
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [detailsErrors, setDetailsErrors] = useState({});
-  const [sessionId, setSessionId] = useState('');
-
-  // ---- Email OTP step ----
-  const [emailOtp, setEmailOtp] = useState(Array(6).fill(''));
-  const [emailOtpError, setEmailOtpError] = useState('');
-  const [emailOtpActive, setEmailOtpActive] = useState(false);
-  const emailOtpRefs = useRef([]);
-  const emailTimer = useCountdown(RESEND_SECONDS, emailOtpActive);
-
-  // ---- Shared ----
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [inlineMsg, setInlineMsg] = useState(null); // { type: 'login' | 'register', msg: '' }
 
-  // Auto-focus first OTP box when entering OTP steps
   useEffect(() => {
-    if (step === 'phone-otp') setTimeout(() => phoneOtpRefs.current[0]?.focus(), 100);
-    if (step === 'email-otp') setTimeout(() => emailOtpRefs.current[0]?.focus(), 100);
+    if (step === 'otp') setTimeout(() => otpRefs.current[0]?.focus(), 100);
   }, [step]);
 
   const resetAll = useCallback(() => {
-    setStep('phone');
+    setStep('login');
     setFlow(null);
-    setPhone('');
-    setPhoneOtp(Array(6).fill(''));
-    setPhoneOtpError('');
-    setPhoneOtpActive(false);
-    setDetails({
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      gender: 'UNISEX',
-      dateOfBirth: '1995-01-01',
-    });
-    setShowPassword(false);
-    setDetailsErrors({});
-    setSessionId('');
-    setEmailOtp(Array(6).fill(''));
-    setEmailOtpError('');
-    setEmailOtpActive(false);
+    setEmail('');
+    setFirstName('');
+    setLastName('');
+    setOtp(Array(6).fill(''));
+    setOtpError('');
+    setOtpActive(false);
     setLoading(false);
     setError('');
+    setInlineMsg(null);
   }, []);
 
   const handleClose = () => { resetAll(); onClose(); };
 
-  if (!isOpen) return null;
-
-  // ────────────────────────────── OTP box helpers ────────────────────────────
-
-  function makeOtpHandlers(otp, setOtp, refs, setErr) {
-    const handleChange = (idx, value) => {
-      if (idx === 'bulk') { setOtp(value); setErr(''); return; }
-      if (value && !/^\d$/.test(value)) return;
-      const next = [...otp]; next[idx] = value; setOtp(next); setErr('');
-      if (value && idx < 5) setTimeout(() => refs.current[idx + 1]?.focus(), 0);
-    };
-    const handleKeyDown = (idx, e) => {
-      if (e.key === 'Backspace' && !otp[idx] && idx > 0) refs.current[idx - 1]?.focus();
-    };
-    return { handleChange, handleKeyDown };
+  const validateEmail = (e) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(e);
   }
 
-  const phoneOtpHandlers = makeOtpHandlers(phoneOtp, setPhoneOtp, phoneOtpRefs, setPhoneOtpError);
-  const emailOtpHandlers = makeOtpHandlers(emailOtp, setEmailOtp, emailOtpRefs, setEmailOtpError);
-
-  // ────────────────────────────── Step 1: Phone ──────────────────────────────
-
-  const maskedPhone = phone.length >= 4
-    ? `+91 ${'●'.repeat(Math.max(0, phone.length - 4))}${phone.slice(-4)}`
-    : `+91 ${phone}`;
-
-  const handleGetOtp = async (e) => {
+  // --- Login Form ---
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
     setError('');
+    setInlineMsg(null);
     setLoading(true);
     try {
-      await userAuth.requestLoginOtp(phoneE164);
-      setFlow('login');
-      setStep('phone-otp');
-      setPhoneOtpActive(true);
+      const res = await userAuth.checkEmailExists(email);
+      const exists = res.data?.exists;
+      if (exists) {
+        await userAuth.requestEmailLoginOTP(email);
+        setFlow('login');
+        setStep('otp');
+        setOtpActive(true);
+      } else {
+        setInlineMsg({ type: 'login', msg: 'No account found with this email.' });
+      }
     } catch (err) {
-      try {
-        const initiated = await userAuth.initiateRegisterPhone(phoneE164);
+      setError(err.message || 'An error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- Register Form ---
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    if (firstName.trim().length < 2) {
+      setError('First name must be at least 2 characters.');
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    setError('');
+    setInlineMsg(null);
+    setLoading(true);
+    try {
+      const res = await userAuth.checkEmailExists(email);
+      const exists = res.data?.exists;
+      if (exists) {
+        setInlineMsg({ type: 'register', msg: 'An account with this email already exists.' });
+      } else {
+        await userAuth.requestEmailRegisterOTP(email, firstName);
         setFlow('register');
-        setSessionId(initiated.sessionId || '');
-        setStep('phone-otp');
-        setPhoneOtpActive(true);
-      } catch (registrationErr) {
-        setError(registrationErr.message || err.message || 'Failed to send OTP.');
+        setStep('otp');
+        setOtpActive(true);
       }
+    } catch (err) {
+      setError(err.message || 'An error occurred.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResendPhoneOtp = async () => {
-    setPhoneOtp(Array(6).fill(''));
-    setPhoneOtpError('');
-    try {
-      if (flow === 'login') {
-        await userAuth.resendLoginOtp(phoneE164);
-      } else {
-        await userAuth.resendRegisterPhoneOtp(phoneE164);
-      }
-      setPhoneOtpActive(true);
-      phoneOtpRefs.current[0]?.focus();
-    } catch (err) {
-      setPhoneOtpError(err.message || 'Failed to resend OTP');
+  // --- OTP Handlers ---
+  const handleOtpChange = (idx, value) => {
+    if (idx === 'bulk') { 
+      setOtp(value); setOtpError('');
+      return; 
     }
+    if (value && !/^\d$/.test(value)) return;
+    const next = [...otp]; next[idx] = value; setOtp(next); setOtpError('');
+    if (value && idx < 5) setTimeout(() => otpRefs.current[idx + 1]?.focus(), 0);
+  };
+  
+  const handleOtpKeyDown = (idx, e) => {
+    if (e.key === 'Backspace' && !otp[idx] && idx > 0) otpRefs.current[idx - 1]?.focus();
   };
 
-  // ────────────────────────────── Step 2: Phone OTP ──────────────────────────
+  useEffect(() => {
+    const tokenStr = otp.join('');
+    if (tokenStr.length === 6 && !loading && !otpError) {
+      handleVerifyOtp(tokenStr);
+    }
+  }, [otp]); // Removed loading and otpError from deps to prevent duplicate calls, just rely on otp changing
 
-  const handleVerifyPhoneOtp = async (e) => {
-    e.preventDefault();
-    const otpStr = phoneOtp.join('');
-    if (otpStr.length !== 6) return;
-    setPhoneOtpError('');
-
+  const handleVerifyOtp = async (tokenStr) => {
+    setOtpError('');
     setLoading(true);
     try {
+      let res;
       if (flow === 'login') {
-        const res = await userAuth.loginWithPhone(phoneE164, otpStr);
-        const data = res.data || {};
-        login({
-          phone: phoneE164,
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-          userData: data.user || null,
+        res = await userAuth.loginWithEmailOTP(email, tokenStr);
+      } else {
+        res = await userAuth.completeEmailRegistration({
+          firstName,
+          lastName,
+          email,
+          otp: tokenStr
         });
-        handleClose();
-        onLoginSuccess?.();
-      } else {
-        const verified = await userAuth.verifyRegisterPhone(phoneE164, otpStr);
-        setSessionId(verified.sessionId || sessionId);
-        setStep('details');
       }
-    } catch (err) {
-      setPhoneOtpError(err.message || 'Invalid OTP');
-      setPhoneOtp(Array(6).fill(''));
-      phoneOtpRefs.current[0]?.focus();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ────────────────────────────── Step 3: Details ────────────────────────────
-
-  const validateDetails = () => {
-    const errs = {};
-    if (details.firstName.trim().length < 2) errs.firstName = 'At least 2 characters';
-    if (details.lastName.trim().length < 2) errs.lastName = 'At least 2 characters';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email)) errs.email = 'Enter a valid email';
-    if (details.password.length < 8) errs.password = 'At least 8 characters';
-    if (!details.dateOfBirth) errs.dateOfBirth = 'Date of birth is required';
-    return errs;
-  };
-
-  const handleDetailsSubmit = async (e) => {
-    e.preventDefault();
-    const errs = validateDetails();
-    if (Object.keys(errs).length) { setDetailsErrors(errs); return; }
-
-    setLoading(true);
-    try {
-      await userAuth.initiateEmail(sessionId, details.email, details.firstName);
-      setStep('email-otp');
-      setEmailOtpActive(true);
-    } catch (err) {
-      setError(err.message || 'Failed to send email OTP');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const setDetail = (key, val) => {
-    setDetails((d) => ({ ...d, [key]: val }));
-    setDetailsErrors((e) => ({ ...e, [key]: '' }));
-  };
-
-  // ────────────────────────────── Step 4: Email OTP ──────────────────────────
-
-  const handleResendEmail = async () => {
-    setEmailOtp(Array(6).fill(''));
-    setEmailOtpError('');
-    try {
-      await userAuth.resendEmail(sessionId, details.email, details.firstName);
-      setEmailOtpActive(true);
-      emailOtpRefs.current[0]?.focus();
-    } catch (err) {
-      setEmailOtpError(err.message || 'Failed to resend email OTP');
-    }
-  };
-
-  const handleCompleteRegistration = async (e) => {
-    e.preventDefault();
-    const tokenStr = emailOtp.join('');
-    if (tokenStr.length !== 6) return;
-    setEmailOtpError('');
-
-    setLoading(true);
-    try {
-      await userAuth.verifyEmail(sessionId, details.email, tokenStr);
-      const completed = await userAuth.completeRegistration({
-        sessionId,
-        firstName: details.firstName,
-        lastName: details.lastName,
-        gender: details.gender,
-        email: details.email,
-        password: details.password,
-        dateOfBirth: details.dateOfBirth,
-      });
-      const data = completed.data || {};
-
+      const data = res.data || {};
       login({
-        phone: phoneE164,
+        email: data.user?.email || email,
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
         userData: data.user || null,
@@ -327,349 +228,200 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
       handleClose();
       onLoginSuccess?.();
     } catch (err) {
-      setEmailOtpError(err.message || 'Failed to complete registration');
-      setEmailOtp(Array(6).fill(''));
-      emailOtpRefs.current[0]?.focus();
+      setOtpError(err.message || 'Incorrect code, try again.');
+      setOtp(Array(6).fill(''));
+      otpRefs.current[0]?.focus();
     } finally {
       setLoading(false);
     }
   };
 
-  // ────────────────────────────── Shared UI helpers ──────────────────────────
+  const handleResendOtp = async () => {
+    setOtp(Array(6).fill(''));
+    setOtpError('');
+    try {
+      if (flow === 'login') {
+        await userAuth.requestEmailLoginOTP(email);
+      } else {
+        await userAuth.requestEmailRegisterOTP(email, firstName);
+      }
+      setOtpActive(true);
+      otpRefs.current[0]?.focus();
+    } catch (err) {
+      if (err.message?.toLowerCase().includes("rate limit") || err.message?.toLowerCase().includes("too many requests")) {
+         setOtpError('Too many requests. Please try again later.');
+      } else {
+         setOtpError(err.message || 'Failed to resend OTP.');
+      }
+    }
+  };
 
-  const BackButton = ({ onClick }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className="absolute top-4 left-4 p-1 hover:bg-gray-100 rounded-full transition-all duration-[250ms] ease cursor-pointer"
-    >
-      <ArrowLeft className="w-6 h-6 text-gray-500" />
-    </button>
-  );
+  const handleSwitchToRegister = () => {
+    setStep('register');
+    setInlineMsg(null);
+    setError('');
+  };
 
-  const ResendRow = ({ canResend, timer, onResend, label = 'Resend OTP' }) => (
-    <div className="text-center mt-4">
-      {canResend ? (
-        <button
-          type="button"
-          onClick={onResend}
-          className="text-sm font-semibold text-amber-600 hover:text-amber-700 transition-all duration-[250ms] ease cursor-pointer"
-        >
-          {label}
-        </button>
-      ) : (
-        <p className="text-sm text-gray-400">
-          Resend in <span className="font-semibold text-gray-600">{timer.fmt}</span>
-        </p>
-      )}
-    </div>
-  );
+  const handleSwitchToLogin = () => {
+    setStep('login');
+    setInlineMsg(null);
+    setError('');
+  };
 
-  // ────────────────────────────────── Render ─────────────────────────────────
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      {/* Overlay */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
-
-      {/* Modal */}
+      
       <div className="relative bg-white rounded-[20px] shadow-[var(--shadow-soft)] w-full max-w-md mx-4 p-8 z-10 max-h-[90vh] overflow-y-auto">
-        {/* Close */}
-        <button
-          type="button"
-          onClick={handleClose}
-          className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-all duration-[250ms] ease cursor-pointer"
-        >
+        <button type="button" onClick={handleClose} className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-all duration-[250ms] ease cursor-pointer">
           <X className="w-6 h-6 text-gray-500" />
         </button>
 
-        {/* Logo */}
         <div className="flex justify-center mb-6">
           <img src="/logo.svg" alt="Logo" className="h-12 w-auto invert" />
         </div>
 
-        {/* ===================== STEP: PHONE ===================== */}
-        {step === 'phone' && (
+        {/* LOGIN STEP */}
+        {step === 'login' && (
           <>
-            <h2 className="text-xl font-bold text-center text-black mb-2">
-              Log in to your account
-            </h2>
-            <p className="text-center text-gray-500 text-sm mb-8">
-              Get personalised picks &amp; faster checkout
-            </p>
+            <h2 className="text-xl font-bold text-center text-black mb-2">Log in to your account</h2>
+            <p className="text-center text-gray-500 text-sm mb-8">Get personalised picks &amp; faster checkout</p>
 
-            {error && (
-              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
-                {error}
-              </div>
-            )}
+            {error && <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
 
-            <form onSubmit={handleGetOtp}>
+            <form onSubmit={handleLoginSubmit}>
               <div className="mb-6">
-                <div className="flex border border-gray-300 rounded-[20px] overflow-hidden focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-300/60 transition-all duration-[250ms] ease">
-                  <span className="flex items-center px-3 text-gray-500 text-sm bg-gray-50 border-r border-gray-300 select-none">
-                    +91
-                  </span>
-                  <input
-                    type="tel"
-                    placeholder="Enter 10-digit mobile number"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    maxLength={10}
-                    className="flex-1 px-4 py-4 text-black placeholder:text-muted focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={phone.length !== 10 || loading}
-                className={`w-full py-2.5 px-6 rounded-full font-semibold transition-all duration-[250ms] ease cursor-pointer flex items-center justify-center gap-2 ${
-                  phone.length === 10 && !loading
-                    ? 'bg-black text-white hover:bg-gray-800'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                Get OTP
-              </button>
-            </form>
-
-            <p className="text-center text-xs text-gray-500 mt-6">
-              By entering this site, you agree to the{' '}
-              <a href="/terms" className="underline font-medium text-black">Terms &amp; Conditions</a>{' '}
-              and{' '}
-              <a href="/privacy" className="underline font-medium text-black">Privacy Policy</a>
-            </p>
-          </>
-        )}
-
-        {/* =================== STEP: PHONE OTP =================== */}
-        {step === 'phone-otp' && (
-          <>
-            <BackButton onClick={() => { setStep('phone'); setPhoneOtpActive(false); }} />
-
-            <h2 className="text-xl font-bold text-center text-black mb-2">Enter OTP</h2>
-            <p className="text-center text-gray-500 text-sm mb-8">
-              OTP sent to <span className="font-medium text-black">{maskedPhone}</span>
-            </p>
-
-            {error && (
-              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleVerifyPhoneOtp}>
-              <OtpBoxes
-                value={phoneOtp}
-                onChange={phoneOtpHandlers.handleChange}
-                onKeyDown={phoneOtpHandlers.handleKeyDown}
-                inputRefs={phoneOtpRefs}
-                error={!!phoneOtpError}
-              />
-              {phoneOtpError && (
-                <p className="text-center text-sm text-red-500 mt-3">{phoneOtpError}</p>
-              )}
-
-              <ResendRow
-                canResend={phoneTimer.done}
-                timer={phoneTimer}
-                onResend={handleResendPhoneOtp}
-              />
-
-              <button
-                type="submit"
-                disabled={phoneOtp.join('').length !== 6 || loading}
-                className={`w-full mt-6 py-4 rounded-full font-semibold transition flex items-center justify-center gap-2 ${
-                  phoneOtp.join('').length === 6 && !loading
-                    ? 'bg-black text-white hover:bg-gray-800'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                Verify OTP
-              </button>
-            </form>
-          </>
-        )}
-
-        {/* =================== STEP: DETAILS ==================== */}
-        {step === 'details' && (
-          <>
-            <BackButton onClick={() => setStep('phone-otp')} />
-
-            <h2 className="text-xl font-bold text-center text-black mb-2">Create your account</h2>
-            <p className="text-center text-gray-500 text-sm mb-6">
-              Just a few details to get started
-            </p>
-
-            {error && (
-              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleDetailsSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <input
-                    type="text"
-                    placeholder="First Name"
-                    value={details.firstName}
-                    onChange={(e) => setDetail('firstName', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.firstName ? 'border-red-400' : 'border-gray-300'}`}
-                  />
-                  {detailsErrors.firstName && (
-                    <p className="text-xs text-red-500 mt-1">{detailsErrors.firstName}</p>
-                  )}
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Last Name"
-                    value={details.lastName}
-                    onChange={(e) => setDetail('lastName', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.lastName ? 'border-red-400' : 'border-gray-300'}`}
-                  />
-                  {detailsErrors.lastName && (
-                    <p className="text-xs text-red-500 mt-1">{detailsErrors.lastName}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
                 <input
                   type="email"
+                  autoComplete="email"
                   placeholder="Email address"
-                  value={details.email}
-                  onChange={(e) => setDetail('email', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.email ? 'border-red-400' : 'border-gray-300'}`}
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setInlineMsg(null); setError(''); }}
+                  className={`w-full px-4 py-4 text-black placeholder:text-muted bg-white border ${inlineMsg ? 'border-red-400' : 'border-gray-300'} rounded-[20px] focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease`}
                 />
-                {detailsErrors.email && (
-                  <p className="text-xs text-red-500 mt-1">{detailsErrors.email}</p>
+                {inlineMsg?.type === 'login' && (
+                  <p className="mt-2 text-sm text-red-500">
+                    {inlineMsg.msg} <button type="button" onClick={handleSwitchToRegister} className="underline font-semibold ml-1 text-red-600 hover:text-red-700">Create one</button>
+                  </p>
                 )}
-              </div>
-
-              <div>
-                <div className={`flex border rounded-[20px] overflow-hidden focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.password ? 'border-red-400' : 'border-gray-300'}`}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password (min. 8 chars)"
-                    value={details.password}
-                    onChange={(e) => setDetail('password', e.target.value)}
-                    className="flex-1 px-4 py-3 text-sm text-black placeholder:text-muted focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="px-3 text-muted hover:text-gray-600 transition-all duration-[250ms] ease cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                {detailsErrors.password && (
-                  <p className="text-xs text-red-500 mt-1">{detailsErrors.password}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Gender</label>
-                  <select
-                    value={details.gender}
-                    onChange={(e) => setDetail('gender', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-[20px] text-sm text-black focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease"
-                  >
-                    <option value="MEN">Men</option>
-                    <option value="WOMEN">Women</option>
-                    <option value="UNISEX">Unisex</option>
-                    <option value="KIDS">Kids</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Date of Birth</label>
-                  <input
-                    type="date"
-                    value={details.dateOfBirth}
-                    onChange={(e) => setDetail('dateOfBirth', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-[20px] text-sm text-black focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease ${detailsErrors.dateOfBirth ? 'border-red-400' : 'border-gray-300'}`}
-                  />
-                  {detailsErrors.dateOfBirth && (
-                    <p className="text-xs text-red-500 mt-1">{detailsErrors.dateOfBirth}</p>
-                  )}
-                </div>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !email}
                 className={`w-full py-2.5 px-6 rounded-full font-semibold transition-all duration-[250ms] ease cursor-pointer flex items-center justify-center gap-2 ${
-                  !loading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  email && !loading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 Continue
               </button>
             </form>
+
+            <p className="text-center text-sm text-gray-500 mt-6">
+              Don't have an account? <button type="button" onClick={handleSwitchToRegister} className="font-semibold text-black hover:underline">Sign up</button>
+            </p>
           </>
         )}
 
-        {/* =================== STEP: EMAIL OTP =================== */}
-        {step === 'email-otp' && (
+        {/* REGISTER STEP */}
+        {step === 'register' && (
           <>
-            <BackButton onClick={() => setStep('details')} />
+            <h2 className="text-xl font-bold text-center text-black mb-2">Create your account</h2>
+            <p className="text-center text-gray-500 text-sm mb-6">Just a few details to get started</p>
 
-            <h2 className="text-xl font-bold text-center text-black mb-2">Verify your Email</h2>
-            <p className="text-center text-gray-500 text-sm mb-2">
-              We&apos;ve sent a 6-digit code to
-            </p>
-            <p className="text-center font-semibold text-black text-sm mb-8">
-              {details.email}
-            </p>
+            {error && <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
 
-            {error && (
-              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
-                {error}
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="First Name"
+                  value={firstName}
+                  onChange={(e) => { setFirstName(e.target.value); setError(''); }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease"
+                />
+                <input
+                  type="text"
+                  placeholder="Last Name (optional)"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease"
+                />
               </div>
-            )}
 
-            <form onSubmit={handleCompleteRegistration}>
-              <OtpBoxes
-                value={emailOtp}
-                onChange={emailOtpHandlers.handleChange}
-                onKeyDown={emailOtpHandlers.handleKeyDown}
-                inputRefs={emailOtpRefs}
-                error={!!emailOtpError}
-              />
-              {emailOtpError && (
-                <p className="text-center text-sm text-red-500 mt-3">{emailOtpError}</p>
-              )}
-
-              <ResendRow
-                canResend={emailTimer.done}
-                timer={emailTimer}
-                onResend={handleResendEmail}
-                label="Resend Email"
-              />
+              <div>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setInlineMsg(null); setError(''); }}
+                  className={`w-full px-4 py-3 border ${inlineMsg ? 'border-red-400' : 'border-gray-300'} rounded-[20px] text-sm text-black placeholder:text-muted focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-300/60 transition-all duration-[250ms] ease`}
+                />
+                {inlineMsg?.type === 'register' && (
+                  <p className="mt-2 text-sm text-red-500">
+                    {inlineMsg.msg} <button type="button" onClick={handleSwitchToLogin} className="underline font-semibold ml-1 text-red-600 hover:text-red-700">Log in instead</button>
+                  </p>
+                )}
+              </div>
 
               <button
                 type="submit"
-                disabled={emailOtp.join('').length !== 6 || loading}
-                className={`w-full mt-6 py-2.5 px-6 rounded-full font-semibold transition-all duration-[250ms] ease cursor-pointer flex items-center justify-center gap-2 ${
-                  emailOtp.join('').length === 6 && !loading
-                    ? 'bg-black text-white hover:bg-gray-800'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                disabled={loading || !email || !firstName}
+                className={`w-full py-2.5 mt-2 px-6 rounded-full font-semibold transition-all duration-[250ms] ease cursor-pointer flex items-center justify-center gap-2 ${
+                  email && firstName && !loading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                Verify &amp; Create Account
+                Continue
               </button>
             </form>
-
-            <p className="text-center text-xs text-gray-400 mt-4">
-              Didn&apos;t receive the email? Check your spam folder.
+            
+            <p className="text-center text-sm text-gray-500 mt-6">
+              Already have an account? <button type="button" onClick={handleSwitchToLogin} className="font-semibold text-black hover:underline">Log in</button>
             </p>
+            <p className="text-center text-xs text-gray-400 mt-4 px-4">
+              By creating an account, you agree to the <a href="/terms" className="underline hover:text-gray-600">Terms</a> &amp; <a href="/privacy" className="underline hover:text-gray-600">Privacy Policy</a>
+            </p>
+          </>
+        )}
+
+        {/* OTP STEP */}
+        {step === 'otp' && (
+          <>
+            <button type="button" onClick={() => { setStep(flow === 'login' ? 'login' : 'register'); setOtpActive(false); }} className="absolute top-4 left-4 p-1 hover:bg-gray-100 rounded-full transition-all duration-[250ms] ease cursor-pointer">
+              <ArrowLeft className="w-6 h-6 text-gray-500" />
+            </button>
+
+            <h2 className="text-xl font-bold text-center text-black mb-2">Verify your Email</h2>
+            <p className="text-center text-gray-500 text-sm mb-2">We&apos;ve sent a 6-digit code to</p>
+            <p className="text-center font-semibold text-black text-sm mb-8">{email}</p>
+
+            <OtpBoxes value={otp} onChange={handleOtpChange} onKeyDown={handleOtpKeyDown} inputRefs={otpRefs} error={!!otpError} />
+            
+            {otpError && <p className="text-center text-sm text-red-500 mt-3">{otpError}</p>}
+            {error && <p className="text-center text-sm text-red-500 mt-3">{error}</p>}
+
+            <div className="text-center mt-6">
+              {timer.done ? (
+                <button type="button" onClick={handleResendOtp} disabled={loading} className="text-sm font-semibold text-amber-600 hover:text-amber-700 transition-all duration-[250ms] ease cursor-pointer disabled:opacity-50">
+                  Resend OTP
+                </button>
+              ) : (
+                <p className="text-sm text-gray-400">Resend in <span className="font-semibold text-gray-600">{timer.fmt}</span></p>
+              )}
+            </div>
+            
+            {otpError && otpError.includes("Too many") && (
+              <div className="text-center mt-4">
+                 <button type="button" onClick={() => setStep(flow === 'login' ? 'login' : 'register')} className="text-sm font-medium text-gray-600 underline hover:text-black">
+                    Use a different email
+                 </button>
+              </div>
+            )}
           </>
         )}
       </div>

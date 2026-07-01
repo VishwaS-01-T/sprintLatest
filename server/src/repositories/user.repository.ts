@@ -7,10 +7,10 @@ export interface CreateUserInput {
   firstName: string;
   lastName: string;
   email: string;
-  passwordHash: string;
-  phoneNumber: string;
-  gender: Gender;
-  dateOfBirth: Date;
+  passwordHash?: string;
+  phoneNumber?: string;
+  gender?: Gender;
+  dateOfBirth?: Date;
   phoneVerified?: boolean;
   emailVerified?: boolean;
   status?: UserStatus;

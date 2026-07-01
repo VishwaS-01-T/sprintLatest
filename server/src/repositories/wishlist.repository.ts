@@ -14,8 +14,8 @@ export const wishlistRepository = {
                 slug: true,
                 basePrice: true,
                 status: true,
+                images: { where: { isThumbnail: true }, take: 1 },
               },
-              include: { images: { where: { isThumbnail: true }, take: 1 } },
             },
             variant: {
               select: {

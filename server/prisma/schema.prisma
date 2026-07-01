@@ -575,16 +575,16 @@ model User {
   firstName           String               @db.VarChar(100)
   lastName            String               @db.VarChar(100)
   email               String               @unique @db.VarChar(255)
-  passwordHash        String               @db.VarChar(255)
-  phoneNumber         String               @unique @db.VarChar(20)
+  passwordHash        String?              @db.VarChar(255)
+  phoneNumber         String?              @unique @db.VarChar(20)
   status              UserStatus           @default(ACTIVE)
   emailVerified       Boolean              @default(false)
   phoneVerified       Boolean              @default(false)
   lastLogin           DateTime?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  gender              Gender
-  dateOfBirth         DateTime
+  gender              Gender?
+  dateOfBirth         DateTime?
   deletedAt           DateTime?
   loyaltyPoints       Int                  @default(0)
   preferences         String?

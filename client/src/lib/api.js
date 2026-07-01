@@ -65,6 +65,22 @@ export const userAuth = {
 
   refreshTokens: (refreshToken) =>
     apiFetch('/user/auth/refresh', { method: 'POST', body: { refreshToken } }),
+
+  // Passwordless Email Auth
+  checkEmailExists: (email) =>
+    apiFetch('/user/auth/check-email', { method: 'POST', body: { email } }),
+
+  requestEmailLoginOTP: (email) =>
+    apiFetch('/user/auth/email-otp/login/request', { method: 'POST', body: { email } }),
+
+  loginWithEmailOTP: (email, otp) =>
+    apiFetch('/user/auth/email-otp/login/verify', { method: 'POST', body: { email, otp } }),
+
+  requestEmailRegisterOTP: (email, firstName) =>
+    apiFetch('/user/auth/email-otp/register/request', { method: 'POST', body: { email, firstName } }),
+
+  completeEmailRegistration: (payload) =>
+    apiFetch('/user/auth/email-otp/register/verify', { method: 'POST', body: payload }),
 };
 
 /* ---- Reviews ---- */

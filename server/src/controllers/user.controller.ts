@@ -79,6 +79,28 @@ const verifyEmailOTPSchema = z.object({
   otp: z.string().length(6, "OTP must be 6 digits"),
 });
 
+// ─── Passwordless Auth Schemas ──────────────────────────────────────────────────
+const checkEmailSchema = z.object({
+  email: z.string().email("Invalid email format"),
+});
+const requestEmailLoginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+});
+const loginWithEmailOTPSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  otp: z.string().length(6, "OTP must be 6 digits"),
+});
+const requestEmailRegisterSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+});
+const completeEmailRegistrationSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().optional(),
+  otp: z.string().length(6, "OTP must be 6 digits"),
+});
+
 // ─── Registration Handlers ──────────────────────────────────────────────────────────
 
 /** POST /auth/register/initiate-phone */
@@ -294,6 +316,72 @@ export const loginWithEmail = async (
     res
       .status(200)
       .json({ success: true, message: "Login successful", data: result });
+  } catch (e) {
+    next(e);
+  }
+};
+
+// ─── Passwordless Email Handlers ───────────────────────────────────────────────
+
+export const checkEmailExists = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email } = checkEmailSchema.parse(req.body);
+    const exists = await svc.checkEmailExists(email);
+    res.status(200).json({ success: true, data: { exists } });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const requestEmailLoginOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email } = requestEmailLoginSchema.parse(req.body);
+    const result = await svc.requestEmailLoginOTP(email);
+    res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+      ...(result.devOtp && { otp: result.devOtp }),
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const loginWithEmailOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email, otp } = loginWithEmailOTPSchema.parse(req.body);
+    const info = extractRequestInfo(req);
+    const result = await svc.loginWithEmailOTP(email, otp, info);
+    res.status(200).json({ success: true, message: "Login successful", data: result });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const requestEmailRegisterOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email, firstName } = requestEmailRegisterSchema.parse(req.body);
+    const result = await svc.requestEmailRegisterOTP(email, firstName);
+    res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+      ...(result.devOtp && { otp: result.devOtp }),
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const completeEmailRegistration = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const data = completeEmailRegistrationSchema.parse(req.body);
+    const info = extractRequestInfo(req);
+    const result = await svc.completeEmailRegistration(
+      { firstName: data.firstName, lastName: data.lastName || "", email: data.email },
+      data.otp,
+      info
+    );
+    res.status(201).json({ success: true, message: "Registration successful", data: result });
   } catch (e) {
     next(e);
   }
