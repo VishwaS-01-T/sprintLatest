@@ -9,17 +9,8 @@ const createOrderSchema = z.object({
 });
 
 const verifyPaymentSchema = z.object({
-  razorpayOrderId: z.string().min(1),
-  razorpayPaymentId: z.string().min(1),
-  razorpaySignature: z.string().min(1),
   paymentId: z.string().uuid(),
-});
-
-// Legacy schema for backward compatibility
-const legacyWebhookSchema = z.object({
-  transactionId: z.string().min(1),
-  paymentId: z.string().uuid(),
-  status: z.enum(["success", "failed"]),
+  sessionId: z.string().optional(),
 });
 
 // ─── Controller Handlers ────────────────────────────────────────────────────────
@@ -70,26 +61,8 @@ export const webhook = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const signature = req.headers["x-razorpay-signature"] as string;
-
-    // Check if this is a legacy mock webhook call (for backward compatibility)
-    const legacyParsed = legacyWebhookSchema.safeParse(req.body);
-    if (legacyParsed.success) {
-      // Handle legacy mock webhook format
-      const { transactionId, paymentId } = legacyParsed.data;
-      const result = await svc.verifyPayment({
-        razorpayOrderId: transactionId,
-        razorpayPaymentId: `mock_${transactionId}`,
-        razorpaySignature: "mock_signature",
-        paymentId,
-      });
-      res.status(200).json({ success: true, data: result });
-      return;
-    }
-
-    // Handle real Razorpay webhook
-    const result = await svc.handleWebhook(req.body, signature || "");
-    res.status(200).json({ success: true, data: result });
+    const result = await svc.handleWebhook(req.body);
+    res.status(200).json(result);
   } catch (e) {
     next(e);
   }

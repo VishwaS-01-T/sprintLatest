@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Order Service
  *
@@ -841,7 +842,7 @@ const formatOrderForClient = (order: any) => {
   if (order.addresses?.shippingAddress) {
     try {
       shippingAddress = JSON.parse(order.addresses.shippingAddress);
-    } catch (e) {
+    } catch {
       shippingAddress = null;
     }
   }

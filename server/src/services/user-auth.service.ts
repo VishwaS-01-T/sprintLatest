@@ -486,7 +486,7 @@ export const loginWithEmail = async (
   const user = await userRepository.findByEmail(email);
   if (!user) throw new AuthError(401, "Invalid credentials");
 
-  const valid = await bcrypt.compare(password, user.passwordHash);
+  const valid = await bcrypt.compare(password, user.passwordHash!);
   if (!valid) throw new AuthError(401, "Invalid credentials");
 
   if (user.status !== "ACTIVE")

@@ -7,7 +7,7 @@ import { addressesApi } from "../lib/api/addressesApi";
 import { paymentMethodsApi } from "../lib/api/paymentMethodsApi";
 import useCartStore from "../store/cartStore";
 import showToast from "../utils/toast";
-import { RazorpayCheckout } from "../components/RazorpayCheckout";
+import { paymentsApi } from "../lib/api/paymentsApi";
 import { CheckoutSkeleton } from "../components/skeletons/CheckoutSkeleton";
 
 const PAYMENT_OPTIONS = [
@@ -28,8 +28,6 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
   const [summary, setSummary] = useState(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [orderData, setOrderData] = useState(null);
   const getCartSummary = useCartStore((s) => s.getCartSummary);
   const cartSummary = getCartSummary();
   const fetchServerCart = useCartStore((s) => s.fetchServerCart);
@@ -115,7 +113,7 @@ const CheckoutPage = () => {
       const paymentId = created.data?.paymentId;
       if (!order?.id) throw new Error("Unable to create order");
 
-      // For Cash on Delivery, skip Razorpay and complete order directly
+      // For Cash on Delivery, skip online payment and complete order directly
       if (paymentMethod === "COD") {
         await ordersApi.processPayment(order.id, {
           paymentMethod: "COD",
@@ -128,40 +126,20 @@ const CheckoutPage = () => {
 
       if (!paymentId) throw new Error("Unable to create payment session");
 
-      // Store order data and show payment modal for online payments
-      setOrderData({
-        orderId: order.id,
-        id: order.id,
-        paymentId: paymentId,
-        totalAmount: order.totalAmount || cartSummary.total,
-        total: order.totalAmount || cartSummary.total,
-      });
-      setShowPaymentModal(true);
+      // Stripe redirection
+      const session = await paymentsApi.createOrder(paymentId);
+      if (session.data?.url) {
+        clearCart();
+        window.location.href = session.data.url;
+        return; // Don't reset placing state as we are redirecting away
+      } else {
+        throw new Error("Failed to create Stripe checkout session");
+      }
     } catch (err) {
       showToast.error(err.message || "Checkout failed");
-    } finally {
       setPlacing(false);
     }
   };
-
-  const handlePaymentSuccess = (response) => {
-    setShowPaymentModal(false);
-    clearCart(); // Clear local cart after successful payment
-    showToast.success("Payment successful! Order placed.");
-    navigate(`/orders/${orderData.orderId}`);
-  };
-
-  const handlePaymentFailed = () => {
-    setShowPaymentModal(false);
-    showToast.error("Payment failed. Please try again.");
-  };
-
-  // Get user info for Razorpay prefill
-  const userInfo = useMemo(() => ({
-    name: userData ? `${userData.firstName || ''} ${userData.lastName || ''}`.trim() : '',
-    email: userData?.email || '',
-    phone: userData?.phoneNumber || '',
-  }), [userData]);
 
   return (
     <div className="min-h-screen bg-neutral-50 py-10">
@@ -288,15 +266,6 @@ const CheckoutPage = () => {
           </div>
         )}
 
-        {/* Razorpay Payment Checkout */}
-        <RazorpayCheckout
-          isOpen={showPaymentModal}
-          onClose={() => setShowPaymentModal(false)}
-          order={orderData}
-          onSuccess={handlePaymentSuccess}
-          onFailed={handlePaymentFailed}
-          userInfo={userInfo}
-        />
       </div>
     </div>
   );
