@@ -42,12 +42,20 @@ const MediaContent = () => {
 
 export const NewArrivalsScrollExpansion = () => {
   const currentMedia = sampleMediaContent.image;
+  const [settings, setSettings] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch("http://localhost:3000/api/settings/landing-page")
+      .then((res) => res.json())
+      .then(setSettings)
+      .catch(console.error);
+  }, []);
 
   return (
     <ScrollExpandMedia
         mediaType="image"
-        mediaSrc={currentMedia.src}
-        bgImageSrc={currentMedia.background}
+        mediaSrc={settings?.newArrivalsShoeImage || currentMedia.src}
+        bgImageSrc={settings?.newArrivalsBgImage || currentMedia.background}
         title={currentMedia.title}
         date={currentMedia.date}
         scrollToExpand={currentMedia.scrollToExpand}

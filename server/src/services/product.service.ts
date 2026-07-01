@@ -551,8 +551,8 @@ export const getFilterOptions = async () => {
   return productRepository.getFilterOptions();
 };
 
-export const getAllCategories = async () => {
-  return productRepository.findCategories();
+export const getAllCategories = async (gender?: string) => {
+  return productRepository.findCategories(gender);
 };
 
 export const getProductsByCategory = async (

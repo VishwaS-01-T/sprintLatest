@@ -28,7 +28,7 @@ const ProductFilters = ({
   totalProducts = 0,
   className = "",
 }) => {
-  const categories = useProductCategories();
+  const categories = useProductCategories(filters.gender);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     category: true,
@@ -44,6 +44,10 @@ const ProductFilters = ({
       [section]: !prev[section],
     }));
   }, []);
+
+  const handleCategoryChange = useCallback((categoryId) => {
+    onFilterChange({ category: categoryId === filters.category ? 'all' : categoryId });
+  }, [filters.category, onFilterChange]);
 
   const handleGenderChange = useCallback((gender) => {
     onFilterChange({ gender: gender === filters.gender ? null : gender });
@@ -113,7 +117,7 @@ const ProductFilters = ({
                 {category.count}
               </span>
               <input
-                type="radio"
+                type="checkbox"
                 name="category"
                 checked={
                   filters.category === category.id ||
@@ -165,7 +169,7 @@ const ProductFilters = ({
                 {option.label}
               </span>
               <input
-                type="radio"
+                type="checkbox"
                 name="gender"
                 checked={filters.gender === option.value}
                 onChange={() => handleGenderChange(option.value)}

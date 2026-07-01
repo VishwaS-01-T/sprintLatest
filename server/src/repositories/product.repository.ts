@@ -361,9 +361,14 @@ export const productRepository = {
     return [fallback, total] as const;
   },
 
-  findCategories: async () => {
+  findCategories: async (gender?: string) => {
+    const whereClause: Record<string, unknown> = { status: "ACTIVE" };
+    if (gender) {
+      whereClause.gender = gender;
+    }
+
     const categories = await prisma.product.findMany({
-      where: { status: "ACTIVE" },
+      where: whereClause as never,
       distinct: ["category"],
       select: { category: true },
       orderBy: { category: "asc" },
@@ -371,9 +376,10 @@ export const productRepository = {
 
     return Promise.all(
       categories.map(async (item) => ({
-        category: item.category,
-        count: await prisma.product.count({
-          where: { status: "ACTIVE", category: item.category },
+        name: item.category,
+        slug: item.category.toLowerCase().replace(/\s+/g, '-'),
+        productCount: await prisma.product.count({
+          where: { ...whereClause, category: item.category } as never,
         }),
       })),
     );
@@ -409,21 +415,21 @@ export const productRepository = {
 
     if (params.filters.category) {
       where.category = {
-        contains: params.filters.category,
+        contains: params.filters.category.replace(/-/g, ' '),
         mode: "insensitive",
       };
     }
 
     if (params.filters.collection) {
       where.brand = {
-        contains: params.filters.collection,
+        contains: params.filters.collection.replace(/-/g, ' '),
         mode: "insensitive",
       };
     }
 
     if (params.filters.subCategory) {
       where.shoeType = {
-        contains: params.filters.subCategory,
+        contains: params.filters.subCategory.replace(/-/g, ' '),
         mode: "insensitive",
       };
     }
@@ -434,7 +440,7 @@ export const productRepository = {
 
     if (params.filters.shoeType) {
       where.shoeType = {
-        contains: params.filters.shoeType,
+        contains: params.filters.shoeType.replace(/-/g, ' '),
         mode: "insensitive",
       };
     }

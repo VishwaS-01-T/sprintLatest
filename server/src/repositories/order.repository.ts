@@ -306,7 +306,7 @@ export const orderRepository = {
     return Promise.all([
       prisma.order.count({ where: { placedAt: { gte: startOfDay } } }),
       prisma.order.aggregate({
-        where: { placedAt: { gte: startOfDay }, paymentStatus: "COMPLETED" },
+        where: { placedAt: { gte: startOfDay } },
         _sum: { totalAmount: true },
       }),
     ]);
@@ -316,7 +316,6 @@ export const orderRepository = {
     prisma.order.aggregate({
       where: {
         placedAt: { gte: startDate, lte: endDate },
-        paymentStatus: "COMPLETED",
       },
       _sum: { totalAmount: true },
       _count: true,

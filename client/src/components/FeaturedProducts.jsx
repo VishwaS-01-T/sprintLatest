@@ -12,6 +12,7 @@ import { productsApi } from "../lib/api/productsApi";
 const FeaturedProducts = () => {
   const [bestsellers, setBestsellers] = React.useState([]);
   const [bestsellersLoading, setBestsellersLoading] = React.useState(true);
+  const [settings, setSettings] = React.useState(null);
 
   React.useEffect(() => {
     let active = true;
@@ -27,6 +28,13 @@ const FeaturedProducts = () => {
       .finally(() => {
         if (active) setBestsellersLoading(false);
       });
+
+    fetch("http://localhost:3000/api/settings/landing-page")
+      .then((res) => res.json())
+      .then((data) => {
+        if (active) setSettings(data);
+      })
+      .catch(console.error);
 
     return () => {
       active = false;
@@ -72,14 +80,14 @@ const FeaturedProducts = () => {
           <CategoryCard
             title="Men's Collection"
             description="Explore performance and style"
-            image="/assets/shoes/shoe-10.png"
+            image={settings?.mensCollectionImage || "/assets/shoes/shoe-10.png"}
             href="/products?gender=men"
             icon={<TrendingUp className="w-5 h-5" />}
           />
           <CategoryCard
             title="Women's Collection"
             description="Discover comfort and elegance"
-            image="/assets/shoes/shoe-12.avif"
+            image={settings?.womensCollectionImage || "/assets/shoes/shoe-12.avif"}
             href="/products?gender=women"
             icon={<Sparkles className="w-5 h-5" />}
           />

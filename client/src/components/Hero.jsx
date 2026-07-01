@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "../hooks/useRouter.jsx";
 import { motion } from "framer-motion";
 import { cn } from "../lib/utils.js";
@@ -64,6 +64,15 @@ function ElegantShape({
 }
 
 const Hero = () => {
+  const [settings, setSettings] = useState({
+    heroBackground: "https://plus.unsplash.com/premium_photo-1762745549473-a47f75a4946c?q=80&w=1625&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    heroShoe: "/assets/shoes/shoe-10.png"
+  });
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/settings/landing-page").then(res => res.json()).then(data => setSettings(data)).catch(console.error);
+  }, []);
+
   const fadeUpVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: (i) => ({
@@ -129,7 +138,7 @@ const Hero = () => {
       <div
         className="absolute inset-x-0 top-0 h-[78%] sm:h-full bg-cover bg-bottom opacity-50 pointer-events-none"
         style={{
-          backgroundImage: `url('https://plus.unsplash.com/premium_photo-1762745549473-a47f75a4946c?q=80&w=1625&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
+          backgroundImage: `url('${settings.heroBackground}')`,
           // maskImage: 'linear-gradient(to top, black 0%, transparent 60%)',
           // WebkitMaskImage: 'linear-gradient(to top, black 0%, transparent 60%)', (#SANKET; keep this for reference(dont remove any comments))
         }}
@@ -193,7 +202,7 @@ const Hero = () => {
             <div className="relative">
               {/* Shoe Image */}
               <img
-                src="/assets/shoes/shoe-10.png"
+                src={settings.heroShoe}
                 alt="X Lows Armstrong Shoe"
                 className="relative z-10 w-full max-w-[260px] sm:max-w-xl h-auto object-contain drop-shadow-2xl"
               />

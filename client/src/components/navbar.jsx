@@ -191,8 +191,7 @@ export default function Navbar() {
                   /* ---- Logged-in dropdown ---- */
                   <>
                     <div className="p-6 border-b border-neutral-200">
-                      <h3 className="text-lg font-bold text-black">Hello, {userName || 'User'} 👋</h3>
-                      <p className="text-[13px] text-muted mt-0.5">+91 {userPhone}</p>
+                      <h3 className="text-lg font-bold text-black">Hello, {userName || 'User'}</h3>
                     </div>
                     <div className="p-4 space-y-1">
                       {[

@@ -21,8 +21,25 @@ const VideoCarousel = () => {
     isPlaying: false
   });
 
+  const [settings, setSettings] = useState(null);
+  const [slides, setSlides] = useState(hightlightsSlides);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/settings/landing-page").then(res => res.json()).then(data => {
+      setSettings(data);
+      if (data) {
+        const newSlides = [...hightlightsSlides];
+        if (data.video1) newSlides[0].video = data.video1;
+        if (data.video2) newSlides[1].video = data.video2;
+        if (data.video3) newSlides[2].video = data.video3;
+        if (data.video4) newSlides[3].video = data.video4;
+        setSlides(newSlides);
+      }
+    }).catch(console.error);
+  }, []);
+
   const { isEnd, startPlay, videoId, isLastVideo, isPlaying } = video;
-  const slideCount = hightlightsSlides.length;
+  const slideCount = slides.length;
 
   useGSAP(
     () => {
@@ -71,13 +88,13 @@ const VideoCarousel = () => {
     let anim = null;
 
     // Kill ALL tweens on every indicator to stop stale animations
-    hightlightsSlides.forEach((_, i) => {
+    slides.forEach((_, i) => {
       gsap.killTweensOf(videoDivRef.current[i]);
       gsap.killTweensOf(span[i]);
     });
 
     // Reset all indicators based on state
-    hightlightsSlides.forEach((_, i) => {
+    slides.forEach((_, i) => {
       if (i < videoId) {
         gsap.set(videoDivRef.current[i], { width: '8px' });
         gsap.set(span[i], { width: '100%', backgroundColor: '#525252' });
@@ -131,9 +148,9 @@ const VideoCarousel = () => {
 
       animUpdateRef = () => {
         if (videoRef.current[videoId]) {
+          const duration = videoRef.current[videoId].duration || slides[videoId].videoDuration;
           anim.progress(
-            videoRef.current[videoId].currentTime /
-              hightlightsSlides[videoId].videoDuration
+            videoRef.current[videoId].currentTime / duration
           );
         }
       };
@@ -211,7 +228,7 @@ const VideoCarousel = () => {
       {/* Video Slider Container */}
       <div className="relative overflow-hidden rounded-[20px] md:rounded-[24px] bg-neutral-900 shadow-[var(--shadow-soft)]">
         <div className="flex will-change-transform" ref={sliderRef}>
-          {hightlightsSlides.map((list, i) => (
+          {slides.map((list, i) => (
             <div 
               key={list.id} 
               className="min-w-full shrink-0"
@@ -257,7 +274,7 @@ const VideoCarousel = () => {
                 {/* Video Number Badge */}
                 <div className="absolute top-6 right-6 md:top-8 md:right-8 z-10">
                   <span className="px-3 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-white text-sm font-medium border border-white/20">
-                    {String(i + 1).padStart(2, '0')} / {String(hightlightsSlides.length).padStart(2, '0')}
+                    {String(i + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
                   </span>
                 </div>
               </div>
@@ -270,7 +287,7 @@ const VideoCarousel = () => {
       <div className="flex items-center justify-center gap-4 mt-6">
         {/* Progress Indicators */}
         <div className="flex items-center gap-2 px-4 py-2.5 bg-neutral-100 rounded-full shadow-sm">
-          {hightlightsSlides.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => handleIndicatorClick(i)}

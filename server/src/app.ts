@@ -59,6 +59,56 @@ app.use("/api/payment-methods", paymentMethodRouter);
 app.use("/api/reviews", reviewRouter);
 app.use("/api/user/addresses", addressRouter);
 
+import fs from "fs";
+import path from "path";
+import multer from "multer";
+
+const SETTINGS_FILE = path.join(process.cwd(), "settings.json");
+const uploadsDir = path.join(process.cwd(), "..", "client", "public", "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve uploads statically for production
+app.use("/uploads", express.static(uploadsDir));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'));
+  }
+});
+const upload = multer({ storage: storage });
+
+app.post("/api/settings/upload", upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.json({ url: `${baseUrl}/uploads/${req.file.filename}` });
+});
+
+app.get("/api/settings/landing-page", (req, res) => {
+  if (fs.existsSync(SETTINGS_FILE)) return res.json(JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf-8")));
+  res.json({ 
+    heroBackground: "https://plus.unsplash.com/premium_photo-1762745549473-a47f75a4946c?q=80&w=1625&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", 
+    heroShoe: "/assets/shoes/shoe-10.png",
+    video1: "/assets/Videos/highlightFirstVideo.mp4",
+    video2: "/assets/Videos/highlightSecondVideo.mp4",
+    video3: "/assets/Videos/highlightThirdVideo.mp4",
+    video4: "/assets/Videos/highlightFourthVideo.mp4",
+    mensCollectionImage: "/assets/shoes/shoe-10.png",
+    womensCollectionImage: "/assets/shoes/shoe-12.avif",
+    newArrivalsBgImage: "https://images.unsplash.com/photo-1518002171953-a080ee817e1f?auto=format&fit=crop&w=1920&q=80",
+    newArrivalsShoeImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1280&q=80"
+  });
+});
+app.post("/api/settings/landing-page", (req, res) => {
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(req.body));
+  res.json({ success: true });
+});
+
 // 404 handler (before error handler)
 app.use((req, res) => {
   res.status(404).json({

@@ -123,13 +123,13 @@ export function useRelatedProducts(productId, limit = 4) {
   return { products, loading };
 }
 
-export function useProductCategories() {
+export function useProductCategories(gender) {
   const [categories, setCategories] = useState([{ id: "all", name: "All", count: 0 }]);
 
   useEffect(() => {
     let active = true;
     productsApi
-      .getCategories()
+      .getCategories(gender)
       .then((data) => {
         if (active) setCategories(data);
       })
@@ -140,7 +140,7 @@ export function useProductCategories() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [gender]);
 
   return categories;
 }

@@ -7,7 +7,7 @@ function Sidebar({ open, onToggle }) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-30 h-screen w-72 border-r border-slate-200 bg-white/95 backdrop-blur md:static md:block',
+        'fixed left-0 top-0 z-30 h-screen w-72 border-r border-slate-200 bg-white/95 backdrop-blur md:sticky md:top-0',
         open ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         'transition-transform duration-200',
       )}

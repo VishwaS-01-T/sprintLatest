@@ -10,6 +10,7 @@ import ProductDetailPage from '@/pages/products/ProductDetailPage'
 import DummyProductsSeederPage from '@/pages/products/DummyProductsSeederPage'
 import OrdersListPage from '@/pages/orders/OrdersListPage'
 import OrderDetailPage from '@/pages/orders/OrderDetailPage'
+import { LandingPageSettings } from '@/pages/settings/LandingPageSettings';
 import ModulePlaceholderPage from '@/pages/common/ModulePlaceholderPage'
 import AdminLayout from '@/components/layout/AdminLayout'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
@@ -54,7 +55,7 @@ function App() {
             <Route path="marketing" element={<ModulePlaceholderPage title="Marketing" />} />
             <Route path="returns" element={<ModulePlaceholderPage title="Returns & Refunds" />} />
             <Route path="reviews" element={<ModulePlaceholderPage title="Reviews" />} />
-            <Route path="settings" element={<ModulePlaceholderPage title="Settings" />} />
+            <Route path="settings" element={<LandingPageSettings />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

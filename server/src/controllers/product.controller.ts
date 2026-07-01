@@ -622,12 +622,12 @@ export const clientGetFilterOptions = async (
 
 /** GET /products/categories */
 export const clientGetAllCategories = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const categories = await svc.getAllCategories();
+    const categories = await svc.getAllCategories(req.query.gender as string);
     res.status(200).json({ success: true, data: { categories } });
   } catch (e) {
     next(e);

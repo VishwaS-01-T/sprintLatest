@@ -268,9 +268,10 @@ export const productsApi = {
       .slice(0, limit);
   },
 
-  async getCategories() {
+  async getCategories(gender) {
     try {
-      const res = await apiRequest("/products/categories");
+      const url = gender ? `/products/categories?gender=${gender.toUpperCase()}` : "/products/categories";
+      const res = await apiRequest(url);
       const categories = res.data?.categories || [];
 
       if (categories.length > 0) {
