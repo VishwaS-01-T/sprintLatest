@@ -1,6 +1,9 @@
 import React from "react";
-import { Link } from "../hooks/useRouter.jsx";
+import { Link, useRouter } from "../hooks/useRouter.jsx";
 import { Heart } from "lucide-react";
+import useWishlistStore from "../store/wishlistStore.js";
+import useAuthStore from "../store/authStore.js";
+import toast from "react-hot-toast";
 
 /**
  * ProductCard Component
@@ -20,13 +23,35 @@ const ProductCard = ({
   index = 0,
   gender,
 }) => {
-  const [isFavorite, setIsFavorite] = React.useState(false);
+  const { items, localItems, toggleWishlist } = useWishlistStore();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const { navigate } = useRouter();
 
-  const handleFavoriteClick = (e) => {
+  const isFavorite = isLoggedIn 
+    ? items.some((i) => i.productId === id) 
+    : localItems.includes(id);
+
+  const handleFavoriteClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorite(!isFavorite);
-    // TODO: Integrate with backend favorites API
+    
+    try {
+      const res = await toggleWishlist(id);
+      
+      if (res.added && res.isLocal) {
+        if (!sessionStorage.getItem('wishlist_toast_shown')) {
+          sessionStorage.setItem('wishlist_toast_shown', 'true');
+          toast((t) => (
+            <span className="text-sm text-neutral-800">
+              Saved! <a href="/login" onClick={(e) => { e.preventDefault(); toast.dismiss(t.id); navigate('/login'); }} className="text-blue-500 font-medium hover:underline ml-1">Log in</a> to keep this across devices.
+            </span>
+          ), { icon: '❤️', duration: 4000 });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update wishlist");
+    }
   };
 
   const productPath = `/product/${slug || id}`;

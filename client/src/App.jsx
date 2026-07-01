@@ -19,6 +19,8 @@ const MyProfile = lazy(() => import("./pages/MyProfile.jsx"));
 const WishlistPage = lazy(() => import("./pages/WishlistPage.jsx"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage.jsx"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage.jsx"));
+const AboutUs = lazy(() => import("./pages/AboutUs.jsx"));
+const ContactUs = lazy(() => import("./pages/ContactUs.jsx"));
 
 // Loading skeleton component for better UX during code splitting
 const PageSkeleton = () => (
@@ -88,6 +90,14 @@ const Routes = () => {
 
   if (currentPath === "/checkout") {
     return <CheckoutPage />;
+  }
+
+  if (currentPath === "/about") {
+    return <AboutUs />;
+  }
+
+  if (currentPath === "/contact") {
+    return <ContactUs />;
   }
 
   // 404 Page

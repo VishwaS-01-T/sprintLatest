@@ -18,7 +18,7 @@ const FooterLink = ({ href, children }) => (
  */
 const Footer = () => {
   return (
-    <footer className="bg-neutral-950 text-white">
+    <footer className="bg-neutral-950 text-white border-t-2 border-dashed border-neutral-700/50">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-8">
@@ -74,9 +74,9 @@ const Footer = () => {
             </h4>
             <ul className="space-y-2 sm:space-y-3">
               <FooterLink href="/about">About Us</FooterLink>
-              <FooterLink href="/craftsmanship">Craftsmanship</FooterLink>
+              {/* <FooterLink href="/craftsmanship">Craftsmanship</FooterLink>
               <FooterLink href="/garage">The Inventory</FooterLink>
-              <FooterLink href="/vault">The Vault</FooterLink>
+              <FooterLink href="/vault">The Vault</FooterLink> */}
               <FooterLink href="/careers">Careers</FooterLink>
             </ul>
           </div>
@@ -86,10 +86,10 @@ const Footer = () => {
             <h4 className="text-xs font-bold uppercase tracking-widest text-muted mb-5">Support</h4>
             <ul className="space-y-3">
               <FooterLink href="/">Home</FooterLink>
-              <FooterLink href="/stores">Store Locator</FooterLink>
+              {/* <FooterLink href="/stores">Store Locator</FooterLink> */}
               <FooterLink href="/returns">Returns & Exchanges</FooterLink>
               <FooterLink href="/contact">Contact Us</FooterLink>
-              <FooterLink href="/faq">FAQ</FooterLink>
+              {/* <FooterLink href="/faq">FAQ</FooterLink> */}
             </ul>
           </div>
 

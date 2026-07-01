@@ -39,7 +39,7 @@ export const passwordResetLimiter = rateLimit({
 // General API rate limiter (less restrictive)
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 5000, // Increased limit for development/testing
   message: {
     success: false,
     message: "Too many requests, please try again later",

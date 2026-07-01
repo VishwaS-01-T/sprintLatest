@@ -35,27 +35,28 @@ const useCartStore = create((set, get) => ({
   notification: null,
 
   // Get total item count
-  get itemCount() {
+  getItemCount: () => {
     return get().items.reduce((sum, item) => sum + item.quantity, 0);
   },
 
   // Get cart summary
   getCartSummary: () => {
     const summary = get().cartSummary;
+    const localItemCount = get().getItemCount();
+    
     if (summary) {
       const subtotal = Number(summary.subtotal || 0);
-      const shipping = Number(summary.shipping || 0);
+      const shipping = Number(summary.shippingCost ?? summary.shipping ?? 0);
       const total = Number(summary.total || subtotal + shipping);
-      const itemCount = Number(summary.itemCount || get().itemCount);
+      const itemCount = Number(summary.totalItems ?? summary.itemCount ?? localItemCount);
       return { subtotal, shipping, total, itemCount };
     }
 
     const { items } = get();
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shipping = subtotal > 5000 ? 0 : 199;
+    const shipping = subtotal > 0 ? (subtotal > 5000 ? 0 : 199) : 0;
     const total = subtotal + shipping;
-    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-    return { subtotal, shipping, total, itemCount };
+    return { subtotal, shipping, total, itemCount: localItemCount };
   },
 
   setCartSummary: (summary) => set({ cartSummary: summary || null }),
@@ -65,7 +66,7 @@ const useCartStore = create((set, get) => ({
     if (!isLoggedIn) return;
     try {
       const res = await cartApi.getSummary();
-      set({ cartSummary: res.data || null });
+      set({ cartSummary: res.data?.summary || null });
     } catch {
       set({ cartSummary: null });
     }
